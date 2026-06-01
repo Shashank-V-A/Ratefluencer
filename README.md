@@ -1,6 +1,6 @@
-# Ratefluencer
+# RankMint
 
-AI-powered **Influencer Intelligence Engine** for **micro UGC & short-form commerce creators**.
+AI-powered **creator intelligence** for **micro UGC & short-form commerce creators**.
 
 All creator data comes from **live APIs** — no mock profiles or demo dataset.
 

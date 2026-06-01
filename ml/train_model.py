@@ -1,5 +1,5 @@
 """
-Offline training script for Ratefluencer campaign-success model.
+Offline training script for RankMint campaign-success model.
 Run: pip install numpy scikit-learn xgboost && python ml/train_model.py
 
 Exports logistic-regression-style coefficients for use in src/lib/ml/coefficients.ts

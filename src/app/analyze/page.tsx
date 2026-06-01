@@ -10,6 +10,7 @@ import { PlatformSelector } from "@/components/platform-selector";
 import { ApiStatusBanner } from "@/components/api-status-banner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { GlassPanel, PageShell, PageTitle } from "@/components/ui/page-shell";
 import { Loader2, Search } from "lucide-react";
 
 const EXAMPLES: Partial<Record<Platform, string>> = {
@@ -74,45 +75,43 @@ export default function AnalyzePage() {
     : "#";
 
   return (
-    <div className="px-6 py-12">
-      <div className="mx-auto max-w-2xl">
-        <h1 className="font-display text-3xl font-semibold tracking-tight">
-          Analyze a creator
-        </h1>
-        <p className="mt-3 text-muted-foreground leading-relaxed">
-          Real-time lookup via Instagram Graph API, YouTube Data API, or X API
-          v2. Scores refresh from live metrics every time you analyze.
-        </p>
+    <PageShell narrow>
+      <PageTitle
+        subtitle="Live lookup via YouTube Data API, X API v2, or Instagram Graph. Scores refresh from real metrics every time."
+      >
+        Analyze a creator
+      </PageTitle>
 
-        <div className="mt-6">
-          <ApiStatusBanner />
-        </div>
+      <ApiStatusBanner />
 
-        <div className="mt-8">
-          <PlatformSelector
-            value={platform}
-            onChange={setPlatform}
-            disabled={loading}
-          />
-        </div>
+      <GlassPanel className="mt-8 space-y-6">
+        <PlatformSelector
+          value={platform}
+          onChange={setPlatform}
+          disabled={loading}
+        />
 
         <form
-          className="mt-6 flex gap-3"
+          className="flex gap-3"
           onSubmit={(e) => {
             e.preventDefault();
             runAnalysis();
           }}
         >
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              className="pl-10"
+              className="h-10 border-white/10 bg-white/[0.03] pl-10"
               placeholder={`@${EXAMPLES[platform] ?? "username"}`}
               value={handle}
               onChange={(e) => setHandle(e.target.value)}
             />
           </div>
-          <Button type="submit" disabled={loading || !platformReady}>
+          <Button
+            type="submit"
+            className="h-10 px-5"
+            disabled={loading || !platformReady}
+          >
             {loading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
@@ -122,19 +121,20 @@ export default function AnalyzePage() {
         </form>
 
         {EXAMPLES[platform] && (
-          <div className="mt-4">
-            <button
-              type="button"
-              onClick={() => runAnalysis(EXAMPLES[platform])}
-              className="rounded-full border border-border/80 px-3 py-1 text-xs text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
-            >
-              Try @{EXAMPLES[platform]}
-            </button>
-          </div>
+          <button
+            type="button"
+            suppressHydrationWarning
+            onClick={() => runAnalysis(EXAMPLES[platform])}
+            className="text-xs text-muted-foreground transition-colors hover:text-primary"
+          >
+            Try @{EXAMPLES[platform]}
+          </button>
         )}
+      </GlassPanel>
 
+      <div className="mt-6 space-y-4">
         {apiStatus && !platformReady && (
-          <p className="mt-6 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+          <p className="rounded-xl border border-destructive/25 bg-destructive/10 px-4 py-3 text-sm text-destructive">
             Configure{" "}
             <strong>
               {platform === "youtube"
@@ -149,7 +149,7 @@ export default function AnalyzePage() {
         )}
 
         {error && (
-          <p className="mt-6 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+          <p className="rounded-xl border border-destructive/25 bg-destructive/10 px-4 py-3 text-sm text-destructive">
             {error}
           </p>
         )}
@@ -157,42 +157,42 @@ export default function AnalyzePage() {
         {result?.meta?.warnings?.map((w) => (
           <p
             key={w}
-            className="mt-6 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200/90"
+            className="rounded-xl border border-amber-500/20 bg-amber-500/8 px-4 py-3 text-sm text-amber-100/90"
           >
             {w}
           </p>
         ))}
 
         {result && (
-          <div className="mt-10 rounded-2xl border border-border/80 bg-card/50 p-8">
+          <GlassPanel className="mt-4">
             <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-start">
               <ScoreRing
-                score={result.scores.ratefluencer}
+                score={result.scores.rankMint}
                 size={140}
-                label="Ratefluencer™"
+                label="RankMint™"
               />
               <div className="flex-1 text-center sm:text-left">
-                <h2 className="font-display text-2xl font-semibold">
+                <h2 className="font-display text-2xl tracking-tight">
                   {result.profile.displayName}
                 </h2>
-                <p className="text-muted-foreground">
+                <p className="mt-1 text-muted-foreground">
                   @{result.profile.handle} ·{" "}
                   <span className="capitalize">{result.profile.platform}</span>
                 </p>
                 <Link
                   href={reportHref}
-                  className="mt-3 inline-block text-sm text-primary hover:underline"
+                  className="mt-4 inline-flex text-sm font-medium text-primary transition-colors hover:text-primary/80"
                 >
                   View full intelligence report →
                 </Link>
               </div>
             </div>
-            <div className="mt-8">
+            <div className="mt-8 border-t border-white/[0.06] pt-8">
               <ScoreBreakdownPanel scores={result.scores} />
             </div>
-          </div>
+          </GlassPanel>
         )}
       </div>
-    </div>
+    </PageShell>
   );
 }

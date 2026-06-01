@@ -204,10 +204,10 @@ export function CreatorReportView({
           <aside className="lg:sticky lg:top-24 lg:self-start">
             <div className="rounded-2xl border border-primary/20 bg-card/60 p-8 text-center backdrop-blur-sm">
               <ScoreRing
-                score={scores.ratefluencer}
+                score={scores.rankMint}
                 size={160}
                 strokeWidth={9}
-                label="Ratefluencer™"
+                label="RankMint™"
               />
               <p className="mt-6 text-sm text-muted-foreground">
                 Predicted campaign success

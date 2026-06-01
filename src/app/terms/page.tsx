@@ -1,4 +1,4 @@
-export const metadata = { title: "Terms of Service — Ratefluencer" };
+export const metadata = { title: "Terms of Service — RankMint" };
 
 export default function TermsPage() {
   return (
@@ -7,7 +7,7 @@ export default function TermsPage() {
       <p className="mt-2 text-sm text-muted-foreground">Last updated: June 2026</p>
       <div className="mt-8 space-y-4 text-sm leading-relaxed text-muted-foreground">
         <p>
-          Ratefluencer is provided for influencer research and education. You
+          RankMint is provided for influencer research and education. You
           must comply with X, YouTube, and Meta platform terms when using this
           tool.
         </p>

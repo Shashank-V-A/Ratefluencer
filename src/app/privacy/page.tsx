@@ -1,4 +1,4 @@
-export const metadata = { title: "Privacy Policy — Ratefluencer" };
+export const metadata = { title: "Privacy Policy — RankMint" };
 
 export default function PrivacyPage() {
   return (
@@ -9,7 +9,7 @@ export default function PrivacyPage() {
       <p className="text-muted-foreground">Last updated: June 2026</p>
       <div className="mt-8 space-y-4 text-sm leading-relaxed text-muted-foreground">
         <p>
-          Ratefluencer analyzes public social media profiles when a user
+          RankMint analyzes public social media profiles when a user
           submits a handle. We do not sell personal data.
         </p>
         <p>

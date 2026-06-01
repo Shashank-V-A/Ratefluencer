@@ -69,7 +69,7 @@ export interface ScoreBreakdown {
   authenticity: number;
   growthPotential: number;
   brandMatch: number;
-  ratefluencer: number;
+  rankMint: number;
   campaignSuccessProbability: number;
 }
 

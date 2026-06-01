@@ -2,9 +2,9 @@ import type { AnalysisResult, BrandProfile, InfluencerProfile } from "@/lib/type
 import { computeAuthenticityScore } from "./authenticity";
 import { matchBrands } from "./brand-match";
 import { computeGrowthPotential } from "./growth";
-import { computeRatefluencerScore } from "./ratefluencer";
+import { computeRankMintScore } from "./rank-mint";
 
-const MODEL_VERSION = "rf-ensemble-v1.2-micro-ugc";
+const MODEL_VERSION = "rm-ensemble-v1.2-micro-ugc";
 
 export function analyzeInfluencer(
   profile: InfluencerProfile,
@@ -15,10 +15,10 @@ export function analyzeInfluencer(
   const brandRecommendations = matchBrands(profile, brands);
   const brandMatch = brandRecommendations[0]?.score ?? 0;
   const {
-    score: ratefluencer,
+    score: rankMint,
     campaignSuccessProbability,
     featureImportance,
-  } = computeRatefluencerScore(profile);
+  } = computeRankMintScore(profile);
 
   return {
     profile,
@@ -26,7 +26,7 @@ export function analyzeInfluencer(
       authenticity,
       growthPotential,
       brandMatch,
-      ratefluencer,
+      rankMint,
       campaignSuccessProbability,
     },
     authenticityFlags: flags,

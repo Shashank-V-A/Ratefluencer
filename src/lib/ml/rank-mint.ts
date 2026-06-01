@@ -1,7 +1,7 @@
 import type { InfluencerProfile } from "@/lib/types";
 import {
   FEATURE_LABELS,
-  RATEFLUENCER_COEFFICIENTS,
+  RANK_MINT_COEFFICIENTS,
 } from "./coefficients";
 import { extractFeatures, featuresToVector, type MLFeatures } from "./features";
 
@@ -9,7 +9,7 @@ function sigmoid(x: number): number {
   return 1 / (1 + Math.exp(-x));
 }
 
-export function computeRatefluencerScore(profile: InfluencerProfile): {
+export function computeRankMintScore(profile: InfluencerProfile): {
   score: number;
   campaignSuccessProbability: number;
   featureImportance: { feature: string; impact: number }[];
@@ -29,7 +29,7 @@ export function computeRatefluencerScore(profile: InfluencerProfile): {
 }
 
 function dotProduct(f: MLFeatures): number {
-  const c = RATEFLUENCER_COEFFICIENTS;
+  const c = RANK_MINT_COEFFICIENTS;
   return (
     c.intercept +
     c.engagementRate * f.engagementRate +
@@ -49,7 +49,7 @@ function dotProduct(f: MLFeatures): number {
 }
 
 function computeFeatureImportance(f: MLFeatures) {
-  const c = RATEFLUENCER_COEFFICIENTS;
+  const c = RANK_MINT_COEFFICIENTS;
   const keys = Object.keys(c).filter(
     (k) => k !== "intercept"
   ) as (keyof Omit<typeof c, "intercept">)[];

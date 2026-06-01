@@ -46,13 +46,19 @@ function normalizeEnvSecret(value: string | undefined): string | undefined {
     (v.startsWith('"') && v.endsWith('"')) ||
     (v.startsWith("'") && v.endsWith("'"))
   ) {
-    v = v.slice(1, -1);
+    v = v.slice(1, -1).trim();
   }
-  try {
-    return decodeURIComponent(v);
-  } catch {
-    return v;
+  if (v.toLowerCase().startsWith("bearer ")) {
+    v = v.slice(7).trim();
   }
+  if (v.includes("%")) {
+    try {
+      return decodeURIComponent(v);
+    } catch {
+      return v;
+    }
+  }
+  return v;
 }
 
 export function getXBearerToken(): string | undefined {

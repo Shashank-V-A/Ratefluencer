@@ -11,18 +11,28 @@ export function ApiStatusBanner() {
     x?: PlatformStatus;
     instagram?: PlatformStatus;
   } | null>(null);
+  const [xVerify, setXVerify] = useState<{
+    ok: boolean;
+    tokenValid?: boolean;
+    error?: string;
+  } | null>(null);
 
   useEffect(() => {
     fetch("/api/platforms/status")
       .then((r) => r.json())
       .then((d) => setStatus(d.platforms))
       .catch(() => setStatus(null));
+    fetch("/api/platforms/verify-x")
+      .then((r) => r.json())
+      .then((d) => setXVerify(d))
+      .catch(() => setXVerify(null));
   }, []);
 
   if (!status) return null;
 
   const youtubeOk = status.youtube?.configured;
-  const xOk = status.x?.configured;
+  const xKeyPresent = status.x?.configured;
+  const xOk = xKeyPresent && xVerify?.ok === true;
   const coreReady = youtubeOk && xOk;
 
   if (coreReady) {
@@ -31,16 +41,28 @@ export function ApiStatusBanner() {
         <div className="flex items-center gap-2">
           <CheckCircle2 className="h-4 w-4 shrink-0" />
           <span>
-            YouTube + X connected. Instagram is optional — leave those env vars
-            blank until you have Meta setup.
+            YouTube + X API keys verified. Instagram is optional.
           </span>
         </div>
-        {!status.instagram?.configured && (
-          <p className="text-xs text-emerald-400/80 pl-6">
-            X free tier: profile analysis works; tweet timelines may be limited
-            (pay-as-you-go). Scores show a warning when only profile data is
-            used.
-          </p>
+        <p className="text-xs text-emerald-400/80 pl-6">
+          X free tier: profile lookup works; tweet history may be limited.
+        </p>
+      </div>
+    );
+  }
+
+  if (xKeyPresent && xVerify && !xVerify.ok && !xVerify.tokenValid) {
+    return (
+      <div className="flex flex-col gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-red-300">
+        <div className="flex items-start gap-2">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+          <div>
+            <p className="font-medium">X Bearer Token invalid (401)</p>
+            <p className="mt-1 text-xs opacity-90">{xVerify.error}</p>
+          </div>
+        </div>
+        {youtubeOk && (
+          <p className="text-xs pl-6 opacity-80">YouTube is working — use YouTube for now.</p>
         )}
       </div>
     );
@@ -48,7 +70,12 @@ export function ApiStatusBanner() {
 
   const missing: string[] = [];
   if (!youtubeOk) missing.push("YouTube");
-  if (!xOk) missing.push("X");
+  const xNeedsSetup =
+    !xKeyPresent ||
+    (xVerify !== null && !xVerify.ok && !xVerify.tokenValid);
+  if (xNeedsSetup) missing.push("X");
+
+  if (missing.length === 0) return null;
 
   return (
     <div className="flex flex-col gap-2 rounded-lg border border-amber-500/25 bg-amber-500/10 px-4 py-3 text-sm text-amber-200/90">

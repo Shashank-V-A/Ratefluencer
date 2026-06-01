@@ -112,7 +112,7 @@ export async function fetchXCreator(handle: string): Promise<FetchedCreatorRaw> 
     } catch (e) {
       const isTierLimit =
         e instanceof PlatformApiError &&
-        (e.status === 403 || e.status === 402 || e.status === 429);
+        (e.status === 403 || e.status === 429);
       if (!isTierLimit) throw e;
       xTierNote =
         "X free/pay-as-you-go tier: tweet timeline not available. Scores use public profile metrics only — less accurate than YouTube.";

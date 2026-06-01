@@ -75,31 +75,35 @@ export function PlatformSelector({
   }, [visible, value, onChange]);
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
       <div className="flex flex-wrap gap-2">
-        {visible.map((p) => (
-          <button
-            key={p.id}
-            type="button"
-            disabled={disabled || !configured[p.envKey]}
-            onClick={() => onChange(p.id)}
-            className={cn(
-              "inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm transition-all",
-              value === p.id
-                ? "border-primary bg-primary/15 text-primary"
-                : "border-border/80 text-muted-foreground hover:border-primary/30 hover:text-foreground",
-              (disabled || !configured[p.envKey]) && "opacity-50"
-            )}
-          >
-            <p.icon className="h-4 w-4" />
-            {p.label}
-          </button>
-        ))}
+        {visible.map((p) => {
+          const selected = value === p.id;
+          return (
+            <button
+              key={p.id}
+              type="button"
+              suppressHydrationWarning
+              disabled={disabled || !configured[p.envKey]}
+              onClick={() => onChange(p.id)}
+              className={cn(
+                "inline-flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-medium transition-all duration-200",
+                selected
+                  ? "border-primary/35 bg-primary/12 text-primary shadow-[0_0_24px_-8px_oklch(0.75_0.1_78/40%)]"
+                  : "border-white/[0.08] bg-white/[0.02] text-muted-foreground hover:border-white/12 hover:bg-white/[0.04] hover:text-foreground",
+                (disabled || !configured[p.envKey]) &&
+                  "cursor-not-allowed opacity-45"
+              )}
+            >
+              <p.icon className="h-4 w-4" />
+              {p.label}
+            </button>
+          );
+        })}
       </div>
       {!configured.instagram && (
-        <p className="text-xs text-muted-foreground">
-          Instagram hidden until Meta credentials are added — YouTube and X are
-          enough for now.
+        <p className="text-xs leading-relaxed text-muted-foreground">
+          Instagram appears when Meta credentials are configured.
         </p>
       )}
     </div>

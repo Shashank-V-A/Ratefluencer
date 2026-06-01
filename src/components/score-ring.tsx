@@ -46,7 +46,10 @@ export function ScoreRing({
           strokeDasharray={circumference}
           strokeDashoffset={offset}
           strokeLinecap="round"
-          className={cn("transition-all duration-700", tier)}
+          className={cn(
+            "transition-all duration-700 drop-shadow-[0_0_12px_oklch(0.75_0.1_78/25%)]",
+            tier
+          )}
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">

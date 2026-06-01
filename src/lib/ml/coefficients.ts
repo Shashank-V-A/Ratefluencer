@@ -3,7 +3,7 @@
  * Trained offline on micro-UGC campaign outcomes — coefficients are illustrative
  * trained offline; applied to live-extracted features at runtime.
  */
-export const RATEFLUENCER_COEFFICIENTS = {
+export const RANK_MINT_COEFFICIENTS = {
   intercept: -1.82,
   engagementRate: 8.4,
   shareRate: 4.2,
@@ -20,7 +20,7 @@ export const RATEFLUENCER_COEFFICIENTS = {
   microCreatorBonus: 1.8,
 } as const;
 
-export const FEATURE_LABELS: Record<keyof typeof RATEFLUENCER_COEFFICIENTS, string> = {
+export const FEATURE_LABELS: Record<keyof typeof RANK_MINT_COEFFICIENTS, string> = {
   intercept: "Baseline",
   engagementRate: "Engagement Rate",
   shareRate: "Share Rate",
