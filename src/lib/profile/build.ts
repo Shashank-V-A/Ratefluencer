@@ -1,4 +1,3 @@
-import { detectNiche } from "@/lib/niche/detect";
 import type { FetchedCreatorRaw } from "@/lib/platforms/types";
 import { defaultDemographics, inferSignals } from "@/lib/signals/infer";
 import type { InfluencerProfile } from "@/lib/types";
@@ -42,9 +41,11 @@ export function buildProfileFromFetched(
   let totalSaves = media.reduce((s, m) => s + m.saves, 0);
   let totalViews = media.reduce((s, m) => s + m.views, 0);
 
-  // X free tier: profile-only fallback when tweets are unavailable
   if (media.length === 0 && raw.platform === "x" && raw.followers > 0) {
-    const estPosts = Math.min(30, Math.max(1, Math.floor((raw.mediaCount || 100) / 100)));
+    const estPosts = Math.min(
+      30,
+      Math.max(1, Math.floor((raw.mediaCount || 100) / 100))
+    );
     postsLast30Days = estPosts;
     postsLast90Days = estPosts * 3;
     const estEng = raw.followers * 0.008;
@@ -65,12 +66,6 @@ export function buildProfileFromFetched(
         ? totalViews / Math.max(media.length, 1)
         : 0;
 
-  const textBlob = [
-    raw.bio,
-    ...media.map((m) => m.caption),
-  ].join(" ");
-  const { niche, nicheLabel, tags } = detectNiche(textBlob);
-
   const reach = Math.max(raw.followers, 1);
   const postCount = Math.max(media.length, postsLast30Days > 0 ? 1 : 1);
   const engagementRate =
@@ -90,15 +85,15 @@ export function buildProfileFromFetched(
   const saveToLike = totalSaves / Math.max(totalLikes, 1);
   const purchaseIntent = estimatePurchaseIntent(saveToLike, engagementRate);
 
-  const id = `${raw.platform}-${raw.handle}`.toLowerCase().replace(/[^a-z0-9-]/g, "-");
+  const id = `${raw.platform}-${raw.handle}`
+    .toLowerCase()
+    .replace(/[^a-z0-9-]/g, "-");
 
   return {
     id,
     handle: raw.handle,
     displayName: raw.displayName,
     platform: raw.platform,
-    niche,
-    nicheLabel,
     bio: raw.bio.slice(0, 500),
     location: raw.location || "—",
     avatarGradient: hashGradient(raw.handle),
@@ -120,7 +115,6 @@ export function buildProfileFromFetched(
     },
     demographics: defaultDemographics(raw.followers, purchaseIntent),
     signals,
-    contentTags: tags,
     pastCampaigns: 0,
     campaignSuccessRate: Math.min(
       0.92,

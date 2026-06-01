@@ -1,6 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  async redirects() {
+    return [
+      { source: "/creators", destination: "/analyze", permanent: true },
+      { source: "/creators/:path*", destination: "/analyze", permanent: true },
+    ];
+  },
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "**.cdninstagram.com" },

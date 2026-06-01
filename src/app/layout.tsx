@@ -24,7 +24,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Ratefluencer — Micro UGC Intelligence",
   description:
-    "AI-powered influencer intelligence for micro creators, short-form commerce, and authentic UGC partnerships.",
+    "Live influencer intelligence for micro creators — real API data from YouTube, X, and Instagram.",
 };
 
 export default function RootLayout({

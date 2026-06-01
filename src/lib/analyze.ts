@@ -1,5 +1,4 @@
 import { brands } from "@/lib/data/brands";
-import { creators, getCreatorByHandle, getCreatorById } from "@/lib/data/creators";
 import { analyzeInfluencer } from "@/lib/ml/engine";
 import { fetchCreatorFromPlatform } from "@/lib/platforms";
 import { buildProfileFromFetched } from "@/lib/profile/build";
@@ -10,41 +9,6 @@ function withMeta(
   meta: AnalysisResult["meta"]
 ): AnalysisResult {
   return { ...result, meta };
-}
-
-export function analyzeAllCreators(): AnalysisResult[] {
-  return creators
-    .map((c) =>
-      withMeta(analyzeInfluencer(c, brands), {
-        source: "demo",
-        fetchedAt: new Date().toISOString(),
-      })
-    )
-    .sort((a, b) => b.scores.ratefluencer - a.scores.ratefluencer);
-}
-
-export function analyzeCreatorById(id: string): AnalysisResult | null {
-  const profile = getCreatorById(id);
-  if (!profile) return null;
-  return withMeta(analyzeInfluencer(profile, brands), {
-    source: "demo",
-    fetchedAt: new Date().toISOString(),
-  });
-}
-
-export function analyzeCreatorByHandle(
-  handle: string,
-  platform?: Platform
-): AnalysisResult | null {
-  const profile = getCreatorByHandle(handle);
-  if (profile) {
-    if (platform && profile.platform !== platform) return null;
-    return withMeta(analyzeInfluencer(profile, brands), {
-      source: "demo",
-      fetchedAt: new Date().toISOString(),
-    });
-  }
-  return null;
 }
 
 /** Fetch live data from Instagram, YouTube, or X and run ML scoring */
@@ -61,7 +25,7 @@ export async function analyzeLiveCreator(
   }
   if (raw.meta?.profileOnly && platform === "x") {
     warnings.push(
-      "No recent tweets returned — authenticity and engagement scores are estimates from follower/following ratios."
+      "No recent tweets returned — authenticity and engagement scores use profile-level signals only."
     );
   }
   return withMeta(result, {

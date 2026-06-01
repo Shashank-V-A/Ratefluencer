@@ -7,15 +7,3 @@ export function formatFollowers(n: number): string {
 export function formatPercent(n: number): string {
   return `${n.toFixed(1)}%`;
 }
-
-export function nicheEmoji(niche: string): string {
-  const map: Record<string, string> = {
-    "Skincare Routines": "✦",
-    "Amazon Finds": "◆",
-    "Café Reels": "◇",
-    "College Lifestyle": "▲",
-    "Budget Fashion": "●",
-    "Product Recs": "■",
-  };
-  return map[niche] ?? "•";
-}

@@ -12,17 +12,10 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Loader2, Search } from "lucide-react";
 
-const DEMO_HANDLES = [
-  { platform: "instagram" as Platform, handle: "priya.glowdiaries" },
-  { platform: "instagram" as Platform, handle: "riya.amazonvault" },
-  { platform: "instagram" as Platform, handle: "luxury.deals.daily" },
-];
-
-const LIVE_EXAMPLES: Record<Platform, string> = {
-  instagram: "nike",
+const EXAMPLES: Partial<Record<Platform, string>> = {
   youtube: "mkbhd",
   x: "naval",
-  tiktok: "",
+  instagram: "nike",
 };
 
 type PlatformStatus = Record<string, { configured: boolean }>;
@@ -31,10 +24,8 @@ export default function AnalyzePage() {
   const [platform, setPlatform] = useState<Platform>("youtube");
   const [apiStatus, setApiStatus] = useState<PlatformStatus | null>(null);
   const [handle, setHandle] = useState("");
-  const [mode, setMode] = useState<"live" | "demo">("live");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [warning, setWarning] = useState<string | null>(null);
   const [result, setResult] = useState<AnalysisResult | null>(null);
 
   useEffect(() => {
@@ -45,31 +36,21 @@ export default function AnalyzePage() {
   }, []);
 
   const platformReady =
-    mode === "demo" ||
     (platform === "youtube" && apiStatus?.youtube?.configured) ||
     (platform === "x" && apiStatus?.x?.configured) ||
     (platform === "instagram" && apiStatus?.instagram?.configured);
 
-  async function runAnalysis(
-    targetHandle?: string,
-    targetPlatform?: Platform
-  ) {
+  async function runAnalysis(targetHandle?: string) {
     const h = (targetHandle ?? handle).replace(/^@/, "").trim();
-    const p = targetPlatform ?? platform;
     if (!h) return;
     setLoading(true);
     setError(null);
-    setWarning(null);
     setResult(null);
     try {
       const res = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          handle: h,
-          platform: mode === "live" ? p : undefined,
-          source: mode,
-        }),
+        body: JSON.stringify({ handle: h, platform }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -80,9 +61,7 @@ export default function AnalyzePage() {
         return;
       }
       setResult(data as AnalysisResult);
-      if (data.warning) setWarning(data.warning);
       setHandle(h);
-      if (targetPlatform) setPlatform(targetPlatform);
     } catch {
       setError("Network error. Please try again.");
     } finally {
@@ -91,9 +70,7 @@ export default function AnalyzePage() {
   }
 
   const reportHref = result
-    ? result.meta?.source === "live"
-      ? `/report/${encodeLiveReportId(result.profile.platform, result.profile.handle)}`
-      : `/creators/${result.profile.id}`
+    ? `/report/${encodeLiveReportId(result.profile.platform, result.profile.handle)}`
     : "#";
 
   return (
@@ -103,41 +80,21 @@ export default function AnalyzePage() {
           Analyze a creator
         </h1>
         <p className="mt-3 text-muted-foreground leading-relaxed">
-          Pull live metrics from Instagram Graph API, YouTube Data API, or X API
-          v2 — then run authenticity, growth, brand match, and Ratefluencer™
-          scoring.
+          Real-time lookup via Instagram Graph API, YouTube Data API, or X API
+          v2. Scores refresh from live metrics every time you analyze.
         </p>
 
         <div className="mt-6">
           <ApiStatusBanner />
         </div>
 
-        <div className="mt-8 flex gap-2 rounded-lg border border-border/80 p-1">
-          {(["live", "demo"] as const).map((m) => (
-            <button
-              key={m}
-              type="button"
-              onClick={() => setMode(m)}
-              className={`flex-1 rounded-md py-2 text-sm font-medium capitalize transition-colors ${
-                mode === m
-                  ? "bg-secondary text-foreground"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {m === "live" ? "Live APIs" : "Demo dataset"}
-            </button>
-          ))}
+        <div className="mt-8">
+          <PlatformSelector
+            value={platform}
+            onChange={setPlatform}
+            disabled={loading}
+          />
         </div>
-
-        {mode === "live" && (
-          <div className="mt-6">
-            <PlatformSelector
-              value={platform}
-              onChange={setPlatform}
-              disabled={loading}
-            />
-          </div>
-        )}
 
         <form
           className="mt-6 flex gap-3"
@@ -150,16 +107,12 @@ export default function AnalyzePage() {
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               className="pl-10"
-              placeholder={
-                mode === "live"
-                  ? `@${LIVE_EXAMPLES[platform] || "username"}`
-                  : "@priya.glowdiaries"
-              }
+              placeholder={`@${EXAMPLES[platform] ?? "username"}`}
               value={handle}
               onChange={(e) => setHandle(e.target.value)}
             />
           </div>
-          <Button type="submit" disabled={loading || (mode === "live" && !platformReady)}>
+          <Button type="submit" disabled={loading || !platformReady}>
             {loading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
@@ -168,47 +121,36 @@ export default function AnalyzePage() {
           </Button>
         </form>
 
-        <div className="mt-4 flex flex-wrap gap-2">
-          {mode === "demo"
-            ? DEMO_HANDLES.map(({ platform: p, handle: h }) => (
-                <button
-                  key={h}
-                  type="button"
-                  onClick={() => runAnalysis(h, p)}
-                  className="rounded-full border border-border/80 px-3 py-1 text-xs text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
-                >
-                  @{h}
-                </button>
-              ))
-            : LIVE_EXAMPLES[platform] && (
-                <button
-                  type="button"
-                  onClick={() => runAnalysis(LIVE_EXAMPLES[platform])}
-                  className="rounded-full border border-border/80 px-3 py-1 text-xs text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
-                >
-                  Try @{LIVE_EXAMPLES[platform]}
-                </button>
-              )}
-        </div>
+        {EXAMPLES[platform] && (
+          <div className="mt-4">
+            <button
+              type="button"
+              onClick={() => runAnalysis(EXAMPLES[platform])}
+              className="rounded-full border border-border/80 px-3 py-1 text-xs text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+            >
+              Try @{EXAMPLES[platform]}
+            </button>
+          </div>
+        )}
 
-        {mode === "live" && apiStatus && !platformReady && (
+        {apiStatus && !platformReady && (
           <p className="mt-6 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-            Add <strong>{platform === "youtube" ? "YOUTUBE_API_KEY" : "X_API_BEARER_TOKEN"}</strong> to{" "}
-            <code className="rounded bg-black/20 px-1">.env.local</code> in the project
-            folder (not .env.example), save, then restart{" "}
-            <code className="rounded bg-black/20 px-1">npm run dev</code>.
+            Configure{" "}
+            <strong>
+              {platform === "youtube"
+                ? "YOUTUBE_API_KEY"
+                : platform === "x"
+                  ? "X_API_BEARER_TOKEN"
+                  : "Instagram Meta credentials"}
+            </strong>{" "}
+            in <code className="rounded bg-black/20 px-1">.env.local</code>, then
+            restart <code className="rounded bg-black/20 px-1">npm run dev</code>.
           </p>
         )}
 
         {error && (
           <p className="mt-6 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
             {error}
-          </p>
-        )}
-
-        {warning && (
-          <p className="mt-6 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200/90">
-            {warning}
           </p>
         )}
 

@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { AlertCircle, CheckCircle2 } from "lucide-react";
 
 type PlatformStatus = { configured: boolean; missing: string[] };
@@ -52,7 +51,7 @@ export function ApiStatusBanner() {
   if (!xOk) missing.push("X");
 
   return (
-    <div className="flex flex-col gap-2 rounded-lg border border-amber-500/25 bg-amber-500/10 px-4 py-3 text-sm text-amber-200/90 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex flex-col gap-2 rounded-lg border border-amber-500/25 bg-amber-500/10 px-4 py-3 text-sm text-amber-200/90">
       <div className="flex items-start gap-2">
         <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
         <span>
@@ -63,12 +62,6 @@ export function ApiStatusBanner() {
           <code className="rounded bg-black/20 px-1">.env.example</code>.
         </span>
       </div>
-      <Link
-        href="/settings"
-        className="shrink-0 font-medium text-primary hover:underline"
-      >
-        Setup guide →
-      </Link>
     </div>
   );
 }

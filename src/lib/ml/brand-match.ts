@@ -1,4 +1,4 @@
-import type { BrandProfile, ContentNiche, InfluencerProfile } from "@/lib/types";
+import type { BrandProfile, InfluencerProfile } from "@/lib/types";
 import { extractFeatures } from "./features";
 
 function cosineSimilarity(a: number[], b: number[]): number {
@@ -14,13 +14,8 @@ function cosineSimilarity(a: number[], b: number[]): number {
   return denom === 0 ? 0 : dot / denom;
 }
 
-/** Lightweight embedding from creator bio + tags (RAG retrieval key) */
 export function embedCreator(profile: InfluencerProfile): number[] {
-  const text = [
-    profile.bio,
-    profile.nicheLabel,
-    ...profile.contentTags,
-  ]
+  const text = [profile.bio, profile.platform, profile.handle]
     .join(" ")
     .toLowerCase();
 
@@ -34,31 +29,11 @@ export function embedCreator(profile: InfluencerProfile): number[] {
       hash = (hash << 5) - hash + token.charCodeAt(i);
       hash |= 0;
     }
-    const idx = Math.abs(hash) % dims;
-    vec[idx] += 1;
+    vec[Math.abs(hash) % dims] += 1;
   }
 
   const norm = Math.sqrt(vec.reduce((s, v) => s + v * v, 0)) || 1;
   return vec.map((v) => v / norm);
-}
-
-function nicheOverlap(
-  creatorNiche: ContentNiche,
-  brandNiches: ContentNiche[]
-): number {
-  if (brandNiches.includes(creatorNiche)) return 1;
-  const related: Record<ContentNiche, ContentNiche[]> = {
-    "skincare-routines": ["product-recommendations", "amazon-finds"],
-    "amazon-finds": ["product-recommendations", "budget-fashion"],
-    "budget-fashion": ["amazon-finds", "college-lifestyle"],
-    "cafe-reels": ["college-lifestyle", "home-decor"],
-    "college-lifestyle": ["budget-fashion", "cafe-reels"],
-    "product-recommendations": ["amazon-finds", "skincare-routines"],
-    "fitness-ugc": ["college-lifestyle", "product-recommendations"],
-    "home-decor": ["cafe-reels", "amazon-finds"],
-  };
-  const relatedSet = related[creatorNiche] ?? [];
-  return brandNiches.some((n) => relatedSet.includes(n)) ? 0.65 : 0.35;
 }
 
 export function matchBrands(
@@ -71,53 +46,36 @@ export function matchBrands(
 
   const ranked = brands.map((brand) => {
     const semantic = cosineSimilarity(creatorVec, brand.embedding);
-    const niche = nicheOverlap(profile.niche, brand.targetNiches);
     const commerceFit =
       f.saveRate * 0.35 + f.shareRate * 0.25 + f.contentCategoryFit * 0.4;
 
-    const raw =
-      semantic * 0.42 + niche * 0.33 + commerceFit * 0.25;
+    const raw = semantic * 0.55 + commerceFit * 0.45;
     const score = Math.round(clamp(raw, 0, 1) * 100);
-
-    const rationale = buildRationale(profile, brand, semantic, niche, score);
+    const rationale = buildRationale(profile, brand, semantic, score);
 
     return { brand, score, rationale };
   });
 
-  return ranked
-    .sort((a, b) => b.score - a.score)
-    .slice(0, topK);
+  return ranked.sort((a, b) => b.score - a.score).slice(0, topK);
 }
 
 function buildRationale(
   profile: InfluencerProfile,
   brand: BrandProfile,
   semantic: number,
-  niche: number,
   score: number
 ): string {
   const parts: string[] = [];
-  if (niche >= 0.9) {
-    parts.push(
-      `${profile.displayName}'s ${profile.nicheLabel} content aligns directly with ${brand.name}'s category.`
-    );
-  } else if (niche >= 0.6) {
-    parts.push(
-      `Adjacent niche fit — ${profile.nicheLabel} audiences overlap with ${brand.category} buyers.`
-    );
-  }
   if (semantic > 0.55) {
     parts.push(
-      "Bio and content embeddings show strong semantic overlap (RAG retrieval confidence high)."
+      `Bio and content align with ${brand.name}'s category (${brand.category}).`
     );
   }
   if (profile.metrics.saves / Math.max(profile.metrics.likes, 1) > 0.08) {
-    parts.push(
-      "High save rate signals purchase-intent content — ideal for short-form commerce."
-    );
+    parts.push("Strong save rate suggests purchase-intent audience.");
   }
   if (score >= 80) {
-    parts.push("Recommended for performance-based UGC campaigns.");
+    parts.push("Recommended for performance-based partnerships.");
   }
   return parts.join(" ") || `Moderate partnership potential with ${brand.name}.`;
 }

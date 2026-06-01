@@ -8,6 +8,6 @@ export async function GET() {
     platforms,
     coreReady: core.youtube.configured && core.x.configured,
     instagramOptional: !platforms.instagram.configured,
-    docs: "/settings",
+    docs: "docs/API_KEYS.md",
   });
 }

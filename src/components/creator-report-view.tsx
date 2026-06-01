@@ -12,8 +12,8 @@ import Image from "next/image";
 
 export function CreatorReportView({
   analysis,
-  backHref = "/creators",
-  backLabel = "Back to rankings",
+  backHref = "/analyze",
+  backLabel = "Back to analyze",
 }: {
   analysis: AnalysisResult;
   backHref?: string;
@@ -44,11 +44,6 @@ export function CreatorReportView({
           {backLabel}
         </Link>
 
-        {meta?.source === "live" && (
-          <p className="mt-4 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs text-primary">
-            Live API data · fetched {new Date(meta.fetchedAt).toLocaleString()}
-          </p>
-        )}
         {meta?.warnings?.map((w) => (
           <p
             key={w}
@@ -87,7 +82,6 @@ export function CreatorReportView({
                 </h1>
                 <p className="text-muted-foreground">@{profile.handle}</p>
                 <div className="mt-3 flex flex-wrap gap-2">
-                  <Badge>{profile.nicheLabel}</Badge>
                   <Badge variant="outline" className="capitalize">
                     {profile.platform}
                   </Badge>

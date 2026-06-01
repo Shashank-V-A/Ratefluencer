@@ -139,7 +139,7 @@ export function defaultDemographics(
           { range: "25-34", percent: 38 },
           { range: "35-44", percent: 28 },
         ],
-    topCountries: [{ country: "Global (API)", percent: 72 }],
+    topCountries: [{ country: "Inferred", percent: 72 }],
     genderSplit: { female: 55, male: 42, other: 3 },
     purchaseIntent,
   };

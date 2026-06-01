@@ -5,10 +5,8 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 const links = [
-  { href: "/creators", label: "Creators" },
   { href: "/analyze", label: "Analyze" },
   { href: "/compare", label: "Compare" },
-  { href: "/settings", label: "API setup" },
 ];
 
 export function SiteHeader() {
@@ -42,10 +40,10 @@ export function SiteHeader() {
           ))}
         </nav>
         <Link
-          href="/creators"
+          href="/analyze"
           className="rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
         >
-          View rankings
+          Analyze
         </Link>
       </div>
     </header>

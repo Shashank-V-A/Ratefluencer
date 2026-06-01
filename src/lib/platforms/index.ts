@@ -19,13 +19,6 @@ export async function fetchCreatorFromPlatform(
       return fetchYouTubeCreator(handle);
     case "x":
       return fetchXCreator(handle);
-    case "tiktok":
-      throw new PlatformApiError(
-        "TikTok public API is not available in this release",
-        "UNSUPPORTED",
-        501,
-        "Use Instagram, YouTube, or X. TikTok demo creators remain in the local dataset."
-      );
     default:
       throw new PlatformApiError(`Unknown platform: ${platform}`, "INVALID");
   }

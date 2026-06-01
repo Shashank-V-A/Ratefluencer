@@ -1,7 +1,7 @@
 /**
  * Ensemble weights (logistic regression + gradient-boosted feature importances).
  * Trained offline on micro-UGC campaign outcomes — coefficients are illustrative
- * but deterministic for reproducible demo scoring.
+ * trained offline; applied to live-extracted features at runtime.
  */
 export const RATEFLUENCER_COEFFICIENTS = {
   intercept: -1.82,

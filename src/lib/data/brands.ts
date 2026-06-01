@@ -22,8 +22,7 @@ const brandDefs: Omit<BrandProfile, "embedding">[] = [
     name: "Glowlane Skincare",
     category: "D2C Beauty",
     description:
-      "Affordable dermatologist-inspired routines for Gen Z. Seeks authentic reel creators who demo AM/PM skincare honestly.",
-    targetNiches: ["skincare-routines", "product-recommendations"],
+      "Dermatologist-inspired skincare for Gen Z. Partners with creators who demo routines honestly.",
     budgetTier: "growth",
     keywords: ["skincare", "routine", "serum", "SPF", "glass skin"],
   },
@@ -32,18 +31,16 @@ const brandDefs: Omit<BrandProfile, "embedding">[] = [
     name: "CartDrop",
     category: "Affiliate Commerce",
     description:
-      "Curated Amazon finds platform. Partners with micro creators who drive saves and link-in-bio conversions.",
-    targetNiches: ["amazon-finds", "product-recommendations", "budget-fashion"],
+      "Curated product discovery platform. Partners with creators who drive saves and link-in-bio conversions.",
     budgetTier: "startup",
-    keywords: ["amazon finds", "under 500", "haul", "must have", "link in bio"],
+    keywords: ["haul", "must have", "link in bio", "deals", "under 500"],
   },
   {
     id: "campusbrew",
     name: "Campus Brew Co.",
     category: "Food & Beverage",
     description:
-      "Specialty coffee for college towns. Wants café reel creators and study-vlog lifestyle integrations.",
-    targetNiches: ["cafe-reels", "college-lifestyle"],
+      "Specialty coffee for college towns. Lifestyle and study-vlog integrations.",
     budgetTier: "growth",
     keywords: ["café", "latte", "study session", "campus", "aesthetic"],
   },
@@ -52,18 +49,16 @@ const brandDefs: Omit<BrandProfile, "embedding">[] = [
     name: "Threadline",
     category: "Budget Fashion",
     description:
-      "Trend-forward outfits under ₹999. Needs creators who style hauls and GRWM content with high share rates.",
-    targetNiches: ["budget-fashion", "college-lifestyle"],
+      "Trend-forward affordable fashion. Creators who style hauls and GRWM with high share rates.",
     budgetTier: "growth",
-    keywords: ["outfit", "haul", "affordable", "GRWM", "college fits"],
+    keywords: ["outfit", "haul", "affordable", "GRWM", "style"],
   },
   {
     id: "nestbox",
     name: "NestBox Home",
     category: "Home & Living",
     description:
-      "Compact dorm and apartment upgrades. Matches home-decor and amazon-finds creators.",
-    targetNiches: ["home-decor", "amazon-finds"],
+      "Compact dorm and apartment upgrades. Room makeover and organization content.",
     budgetTier: "startup",
     keywords: ["room makeover", "desk setup", "aesthetic room", "organization"],
   },
@@ -72,8 +67,7 @@ const brandDefs: Omit<BrandProfile, "embedding">[] = [
     name: "PulseFit",
     category: "Activewear",
     description:
-      "Gym-to-street activewear for young professionals and students. Fitness UGC and lifestyle crossover.",
-    targetNiches: ["fitness-ugc", "college-lifestyle"],
+      "Gym-to-street activewear. Fitness and lifestyle crossover creators.",
     budgetTier: "enterprise",
     keywords: ["workout", "gym", "activewear", "protein", "morning routine"],
   },
@@ -81,9 +75,7 @@ const brandDefs: Omit<BrandProfile, "embedding">[] = [
 
 export const brands: BrandProfile[] = brandDefs.map((b) => ({
   ...b,
-  embedding: embed(
-    [b.description, b.category, ...b.keywords, ...b.targetNiches].join(" ")
-  ),
+  embedding: embed([b.description, b.category, ...b.keywords].join(" ")),
 }));
 
 export function getBrandById(id: string) {

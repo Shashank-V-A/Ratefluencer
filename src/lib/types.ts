@@ -1,17 +1,7 @@
-export type ContentNiche =
-  | "skincare-routines"
-  | "amazon-finds"
-  | "budget-fashion"
-  | "cafe-reels"
-  | "college-lifestyle"
-  | "product-recommendations"
-  | "fitness-ugc"
-  | "home-decor";
-
-export type Platform = "instagram" | "youtube" | "x" | "tiktok";
+export type Platform = "instagram" | "youtube" | "x";
 
 export interface AnalysisMeta {
-  source: "demo" | "live";
+  source: "live";
   fetchedAt: string;
   profileUrl?: string;
   avatarUrl?: string;
@@ -44,14 +34,11 @@ export interface InfluencerProfile {
   handle: string;
   displayName: string;
   platform: Platform;
-  niche: ContentNiche;
-  nicheLabel: string;
   bio: string;
   location: string;
   avatarGradient: string;
   metrics: InfluencerMetrics;
   demographics: AudienceDemographics;
-  /** Synthetic signals for authenticity ML */
   signals: {
     followerGrowthSpike30d: number;
     commentToLikeRatio: number;
@@ -64,7 +51,6 @@ export interface InfluencerProfile {
     botCommentPercent: number;
     duplicateCommentRate: number;
   };
-  contentTags: string[];
   pastCampaigns: number;
   campaignSuccessRate: number;
 }
@@ -74,7 +60,6 @@ export interface BrandProfile {
   name: string;
   category: string;
   description: string;
-  targetNiches: ContentNiche[];
   budgetTier: "startup" | "growth" | "enterprise";
   keywords: string[];
   embedding: number[];

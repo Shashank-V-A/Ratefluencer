@@ -1,27 +1,121 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { creators } from "@/lib/data/creators";
-import { analyzeAllCreators } from "@/lib/analyze";
+import { useState } from "react";
+import type { AnalysisResult, Platform } from "@/lib/types";
+import { PlatformSelector } from "@/components/platform-selector";
 import { ScoreRing } from "@/components/score-ring";
 import { formatFollowers } from "@/lib/format";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
+import { ApiStatusBanner } from "@/components/api-status-banner";
+
+async function fetchAnalysis(
+  platform: Platform,
+  handle: string
+): Promise<AnalysisResult> {
+  const res = await fetch("/api/analyze", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      platform,
+      handle: handle.replace(/^@/, "").trim(),
+    }),
+  });
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error([data.error, data.hint].filter(Boolean).join(" — "));
+  }
+  return data as AnalysisResult;
+}
 
 export default function ComparePage() {
-  const analyses = useMemo(() => analyzeAllCreators(), []);
-  const [leftId, setLeftId] = useState(analyses[0]?.profile.id ?? "");
-  const [rightId, setRightId] = useState(analyses[1]?.profile.id ?? "");
+  const [platformA, setPlatformA] = useState<Platform>("youtube");
+  const [platformB, setPlatformB] = useState<Platform>("x");
+  const [handleA, setHandleA] = useState("mkbhd");
+  const [handleB, setHandleB] = useState("naval");
+  const [left, setLeft] = useState<AnalysisResult | null>(null);
+  const [right, setRight] = useState<AnalysisResult | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const left = analyses.find((a) => a.profile.id === leftId);
-  const right = analyses.find((a) => a.profile.id === rightId);
+  async function compare() {
+    setLoading(true);
+    setError(null);
+    setLeft(null);
+    setRight(null);
+    try {
+      const [a, b] = await Promise.all([
+        fetchAnalysis(platformA, handleA),
+        fetchAnalysis(platformB, handleB),
+      ]);
+      setLeft(a);
+      setRight(b);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Comparison failed");
+    } finally {
+      setLoading(false);
+    }
+  }
 
-  if (!left || !right) return null;
+  if (!left || !right) {
+    return (
+      <div className="px-6 py-12">
+        <div className="mx-auto max-w-4xl">
+          <h1 className="font-display text-3xl font-semibold">
+            Compare creators
+          </h1>
+          <p className="mt-3 text-muted-foreground">
+            Side-by-side intelligence from live API data — two real profiles,
+            analyzed in parallel.
+          </p>
+          <div className="mt-6">
+            <ApiStatusBanner />
+          </div>
+          <div className="mt-10 grid gap-8 md:grid-cols-2">
+            <div className="space-y-4 rounded-2xl border border-border/80 p-6">
+              <p className="text-sm font-medium">Creator A</p>
+              <PlatformSelector
+                value={platformA}
+                onChange={setPlatformA}
+                disabled={loading}
+              />
+              <Input
+                placeholder="@handle"
+                value={handleA}
+                onChange={(e) => setHandleA(e.target.value)}
+              />
+            </div>
+            <div className="space-y-4 rounded-2xl border border-border/80 p-6">
+              <p className="text-sm font-medium">Creator B</p>
+              <PlatformSelector
+                value={platformB}
+                onChange={setPlatformB}
+                disabled={loading}
+              />
+              <Input
+                placeholder="@handle"
+                value={handleB}
+                onChange={(e) => setHandleB(e.target.value)}
+              />
+            </div>
+          </div>
+          <Button className="mt-8" onClick={compare} disabled={loading}>
+            {loading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              "Compare live"
+            )}
+          </Button>
+          {error && (
+            <p className="mt-6 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+              {error}
+            </p>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   const metrics = [
     {
@@ -60,37 +154,18 @@ export default function ComparePage() {
   return (
     <div className="px-6 py-12">
       <div className="mx-auto max-w-4xl">
-        <h1 className="font-display text-3xl font-semibold">Compare creators</h1>
-        <p className="mt-3 text-muted-foreground">
-          Side-by-side intelligence for partnership decisions — optimized for
-          micro UGC, not celebrity reach.
-        </p>
-
-        <div className="mt-10 grid gap-6 sm:grid-cols-2">
-          <Select value={leftId} onValueChange={setLeftId}>
-            <SelectTrigger>
-              <SelectValue placeholder="Creator A" />
-            </SelectTrigger>
-            <SelectContent>
-              {creators.map((c) => (
-                <SelectItem key={c.id} value={c.id} disabled={c.id === rightId}>
-                  {c.displayName}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={rightId} onValueChange={setRightId}>
-            <SelectTrigger>
-              <SelectValue placeholder="Creator B" />
-            </SelectTrigger>
-            <SelectContent>
-              {creators.map((c) => (
-                <SelectItem key={c.id} value={c.id} disabled={c.id === leftId}>
-                  {c.displayName}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="flex items-center justify-between gap-4">
+          <h1 className="font-display text-3xl font-semibold">Comparison</h1>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setLeft(null);
+              setRight(null);
+            }}
+          >
+            New comparison
+          </Button>
         </div>
 
         <div className="mt-12 grid gap-8 md:grid-cols-2">
@@ -100,11 +175,12 @@ export default function ComparePage() {
               className="flex flex-col items-center rounded-2xl border border-border/80 bg-card/40 p-8"
             >
               <ScoreRing score={a.scores.ratefluencer} size={120} />
-              <h2 className="mt-4 font-display text-xl font-semibold">
+              <h2 className="mt-4 font-display text-xl font-semibold text-center">
                 {a.profile.displayName}
               </h2>
-              <p className="text-sm text-muted-foreground">
-                {a.profile.nicheLabel}
+              <p className="text-sm text-muted-foreground">@{a.profile.handle}</p>
+              <p className="mt-1 text-xs text-muted-foreground capitalize">
+                {a.profile.platform} · live
               </p>
             </div>
           ))}
