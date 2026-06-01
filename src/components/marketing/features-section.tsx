@@ -27,13 +27,13 @@ const FEATURES: {
   {
     icon: Handshake,
     title: "Brand match",
-    body: "Embedding similarity against your brand catalog — not generic niche tags.",
+    body: "Built-in semantic embeddings + optional pgvector RAG over your brand workspace.",
     className: "md:col-span-1",
   },
   {
     icon: Layers,
     title: "RankMint™",
-    body: "Ensemble score predicting campaign fit from commerce-ready UGC signals.",
+    body: "Trained logistic model on documented synthetic UGC labels — coefficients synced from ml/train_model.py.",
     className: "md:col-span-2",
   },
 ];

@@ -6,13 +6,19 @@ export interface AnalysisMeta {
   profileUrl?: string;
   avatarUrl?: string;
   warnings?: string[];
+  cached?: boolean;
+  cacheExpiresAt?: string;
+  embeddingProvider?: "openai" | "fallback";
+  modelVersion?: string;
+  scoringNotes?: string[];
 }
 
 export interface AudienceDemographics {
-  ageGroups: { range: string; percent: number }[];
-  topCountries: { country: string; percent: number }[];
-  genderSplit: { female: number; male: number; other: number };
-  purchaseIntent: "low" | "medium" | "high";
+  source: "api" | "inferred" | "unavailable";
+  ageGroups?: { range: string; percent: number }[];
+  topCountries?: { country: string; percent: number }[];
+  genderSplit?: { female: number; male: number; other: number };
+  purchaseIntent?: "low" | "medium" | "high";
 }
 
 export interface InfluencerMetrics {
@@ -96,5 +102,6 @@ export interface AnalysisResult {
   }[];
   featureImportance: { feature: string; impact: number }[];
   modelVersion: string;
+  embeddingProvider?: "openai" | "fallback";
   meta?: AnalysisMeta;
 }

@@ -1,22 +1,7 @@
 import type { BrandProfile } from "@/lib/types";
 
-function embed(text: string): number[] {
-  const dims = 32;
-  const vec = new Array(dims).fill(0);
-  const tokens = text.toLowerCase().split(/\W+/).filter((t) => t.length > 2);
-  for (const token of tokens) {
-    let hash = 0;
-    for (let i = 0; i < token.length; i++) {
-      hash = (hash << 5) - hash + token.charCodeAt(i);
-      hash |= 0;
-    }
-    vec[Math.abs(hash) % dims] += 1;
-  }
-  const norm = Math.sqrt(vec.reduce((s, v) => s + v * v, 0)) || 1;
-  return vec.map((v) => v / norm);
-}
-
-const brandDefs: Omit<BrandProfile, "embedding">[] = [
+/** Default brand catalog seeded into each workspace on first use */
+export const brandDefs: Omit<BrandProfile, "embedding">[] = [
   {
     id: "glowlane",
     name: "Glowlane Skincare",
@@ -72,12 +57,3 @@ const brandDefs: Omit<BrandProfile, "embedding">[] = [
     keywords: ["workout", "gym", "activewear", "protein", "morning routine"],
   },
 ];
-
-export const brands: BrandProfile[] = brandDefs.map((b) => ({
-  ...b,
-  embedding: embed([b.description, b.category, ...b.keywords].join(" ")),
-}));
-
-export function getBrandById(id: string) {
-  return brands.find((b) => b.id === id);
-}

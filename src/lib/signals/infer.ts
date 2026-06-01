@@ -124,23 +124,14 @@ export function inferSignals(
   };
 }
 
+export function unavailableDemographics(): InfluencerProfile["demographics"] {
+  return { source: "unavailable" };
+}
+
+/** @deprecated Use unavailableDemographics — platforms do not expose audience breakdowns without OAuth. */
 export function defaultDemographics(
-  followers: number,
+  _followers: number,
   purchaseIntent: "low" | "medium" | "high" = "medium"
 ): InfluencerProfile["demographics"] {
-  const micro = followers < 100_000;
-  return {
-    ageGroups: micro
-      ? [
-          { range: "18-24", percent: 48 },
-          { range: "25-34", percent: 36 },
-        ]
-      : [
-          { range: "25-34", percent: 38 },
-          { range: "35-44", percent: 28 },
-        ],
-    topCountries: [{ country: "Inferred", percent: 72 }],
-    genderSplit: { female: 55, male: 42, other: 3 },
-    purchaseIntent,
-  };
+  return { source: "unavailable", purchaseIntent };
 }

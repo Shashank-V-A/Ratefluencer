@@ -1,5 +1,5 @@
 import type { FetchedCreatorRaw } from "@/lib/platforms/types";
-import { defaultDemographics, inferSignals } from "@/lib/signals/infer";
+import { inferSignals, unavailableDemographics } from "@/lib/signals/infer";
 import type { InfluencerProfile } from "@/lib/types";
 
 function daysAgo(iso: string): number {
@@ -85,6 +85,14 @@ export function buildProfileFromFetched(
   const saveToLike = totalSaves / Math.max(totalLikes, 1);
   const purchaseIntent = estimatePurchaseIntent(saveToLike, engagementRate);
 
+  const apiDemographics = raw.meta?.demographics as
+    | InfluencerProfile["demographics"]
+    | undefined;
+  const demographics =
+    apiDemographics?.source === "api"
+      ? apiDemographics
+      : { ...unavailableDemographics(), purchaseIntent };
+
   const id = `${raw.platform}-${raw.handle}`
     .toLowerCase()
     .replace(/[^a-z0-9-]/g, "-");
@@ -113,7 +121,7 @@ export function buildProfileFromFetched(
           ? Math.round(raw.meta.avgDurationSec)
           : 30,
     },
-    demographics: defaultDemographics(raw.followers, purchaseIntent),
+    demographics,
     signals,
     pastCampaigns: 0,
     campaignSuccessRate: Math.min(

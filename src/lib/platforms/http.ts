@@ -8,7 +8,11 @@ type ApiErrorBody = {
   status?: number;
 };
 
-function parseErrorMessage(data: ApiErrorBody, status: number): string {
+function parseErrorMessage(
+  data: ApiErrorBody,
+  status: number,
+  platform?: string
+): string {
   const detail =
     data.detail ||
     data.errors?.[0]?.detail ||
@@ -19,22 +23,24 @@ function parseErrorMessage(data: ApiErrorBody, status: number): string {
   if (status === 401) {
     return detail && detail !== "Unauthorized"
       ? `Unauthorized: ${detail}`
-      : "Unauthorized — your X Bearer Token was rejected. Regenerate it in the X Developer Portal (OAuth 2.0 → Bearer Token), paste into .env.local, and restart npm run dev. This is not a free-tier limit.";
+      : platform === "x"
+        ? "Unauthorized — regenerate your X Bearer Token in the developer portal, update .env.local, and restart the dev server."
+        : "Unauthorized — check your API key in .env.local.";
   }
   if (status === 402) {
-    return (
-      data.title === "CreditsDepleted" || detail?.includes("credits")
-        ? "X API credits depleted — your pay-as-you-go account has no credits left. Add credits in the X Developer Portal (Billing) or use YouTube for now."
-        : detail || "Payment required — check X API billing."
-    );
+    return data.title === "CreditsDepleted" || detail?.includes("credits")
+      ? "X API credits depleted — add credits in the X Developer Portal (Billing) or use YouTube for now."
+      : detail || "Payment required — check API billing.";
   }
   if (status === 403) {
     return detail
       ? `Forbidden: ${detail}`
-      : "Forbidden — your X API tier may not allow this endpoint.";
+      : platform === "youtube"
+        ? "Forbidden — YouTube quota exceeded or API key restricted."
+        : "Forbidden — your API tier may not allow this endpoint.";
   }
   if (status === 429) {
-    return "Rate limit exceeded — wait a few minutes or check your X API usage.";
+    return `${platform ?? "Platform"} rate limit exceeded — wait a few minutes and try again.`;
   }
 
   return detail || `HTTP ${status}`;
@@ -42,7 +48,7 @@ function parseErrorMessage(data: ApiErrorBody, status: number): string {
 
 export async function fetchJson<T>(
   url: string,
-  init?: RequestInit & { bearerToken?: string }
+  init?: RequestInit & { bearerToken?: string; platform?: string }
 ): Promise<T> {
   const headers = new Headers(init?.headers);
   if (init?.bearerToken) {
@@ -61,13 +67,29 @@ export async function fetchJson<T>(
   }
 
   if (!res.ok) {
+    const platform = init?.platform;
     const code =
       res.status === 401
-        ? "X_UNAUTHORIZED"
+        ? "UNAUTHORIZED"
         : res.status === 402
           ? "X_CREDITS_DEPLETED"
-          : "HTTP_ERROR";
-    throw new PlatformApiError(parseErrorMessage(data, res.status), code, res.status);
+          : res.status === 403
+            ? "FORBIDDEN"
+            : res.status === 429
+              ? "RATE_LIMIT"
+              : "HTTP_ERROR";
+    const hint =
+      res.status === 429
+        ? "Results may be available from cache if you analyzed this creator recently."
+        : res.status === 402
+          ? "YouTube analysis still works without X credits."
+          : undefined;
+    throw new PlatformApiError(
+      parseErrorMessage(data, res.status, platform),
+      code,
+      res.status,
+      hint
+    );
   }
 
   return data as T;

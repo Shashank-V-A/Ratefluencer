@@ -1,18 +1,18 @@
-import type { AnalysisResult, BrandProfile, InfluencerProfile } from "@/lib/types";
+import type { AnalysisResult, InfluencerProfile } from "@/lib/types";
+import { MODEL_VERSION } from "@/lib/ml/coefficients";
 import { computeAuthenticityScore } from "./authenticity";
 import { matchBrands } from "./brand-match";
 import { computeGrowthPotential } from "./growth";
 import { computeRankMintScore } from "./rank-mint";
 
-const MODEL_VERSION = "rm-ensemble-v1.2-micro-ugc";
-
-export function analyzeInfluencer(
+export async function analyzeInfluencer(
   profile: InfluencerProfile,
-  brands: BrandProfile[]
-): AnalysisResult {
+  sessionId: string
+): Promise<AnalysisResult> {
   const { score: authenticity, flags } = computeAuthenticityScore(profile);
   const { score: growthPotential, forecast } = computeGrowthPotential(profile);
-  const brandRecommendations = matchBrands(profile, brands);
+  const { recommendations: brandRecommendations, embeddingProvider } =
+    await matchBrands(profile, sessionId);
   const brandMatch = brandRecommendations[0]?.score ?? 0;
   const {
     score: rankMint,
@@ -34,5 +34,6 @@ export function analyzeInfluencer(
     brandRecommendations,
     featureImportance,
     modelVersion: MODEL_VERSION,
+    embeddingProvider,
   };
 }

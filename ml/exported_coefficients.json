@@ -1,0 +1,16 @@
+{
+  "intercept": -0.6392186836288937,
+  "engagementRate": 1.742321563941387,
+  "shareRate": -0.04738030532018712,
+  "saveRate": 3.625559614563948,
+  "commentRate": 0.011065141506729348,
+  "viewToFollowerRatio": 0.035430464440485226,
+  "postingConsistency": -0.1906595615863338,
+  "growthRate30d": -0.5641244053513279,
+  "audienceQuality": 0.41336091581195156,
+  "commentQuality": 0.016623223233877812,
+  "contentCategoryFit": -0.5743245782067528,
+  "demographicMatch": 0.5538778744140385,
+  "authenticityRaw": 4.359854014060399,
+  "microCreatorBonus": 1.1775711103379862
+}

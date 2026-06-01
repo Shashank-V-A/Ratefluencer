@@ -7,6 +7,9 @@ import { cn } from "@/lib/utils";
 const links = [
   { href: "/analyze", label: "Analyze" },
   { href: "/compare", label: "Compare" },
+  { href: "/brands", label: "Brands" },
+  { href: "/saved", label: "Shortlist" },
+  { href: "/methodology", label: "Methodology" },
 ];
 
 export function SiteHeader() {

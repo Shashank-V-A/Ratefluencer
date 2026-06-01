@@ -79,3 +79,18 @@ export function getCorePlatformStatus() {
 export function isInstagramOptional() {
   return !getInstagramStatus().configured;
 }
+
+export function getOpenAIStatus(): PlatformEnvStatus & { optional: true } {
+  const missing: string[] = [];
+  if (!process.env.OPENAI_API_KEY?.trim()) missing.push("OPENAI_API_KEY");
+  return { configured: missing.length === 0, missing, optional: true };
+}
+
+export function getSupabaseStatus(): PlatformEnvStatus {
+  const missing: string[] = [];
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL?.trim())
+    missing.push("NEXT_PUBLIC_SUPABASE_URL");
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY?.trim())
+    missing.push("SUPABASE_SERVICE_ROLE_KEY");
+  return { configured: missing.length === 0, missing };
+}

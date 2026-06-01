@@ -39,7 +39,9 @@ export function computeGrowthPotential(profile: InfluencerProfile): {
   );
 
   const audienceExpansion = Math.round(
-    (profile.demographics.topCountries[0]?.percent ?? 40) *
+    (profile.demographics.source === "api"
+      ? (profile.demographics.topCountries?.[0]?.percent ?? 40)
+      : 40) *
       0.35 *
       (score / 100)
   );

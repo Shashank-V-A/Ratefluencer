@@ -59,7 +59,9 @@ export function extractFeatures(profile: InfluencerProfile): MLFeatures {
     : 0.55 + saveRate * 0.3 + shareRate * 0.2;
 
   const demographicMatch =
-    profile.demographics.topCountries[0]?.percent ?? 50;
+    profile.demographics.source === "api"
+      ? (profile.demographics.topCountries?.[0]?.percent ?? 50)
+      : 50;
 
   const authenticityRaw =
     1 -

@@ -1,3 +1,4 @@
+import { ReportActions } from "@/components/report-actions";
 import Link from "next/link";
 import { AuthenticityPanel } from "@/components/authenticity-panel";
 import { BrandMatchList } from "@/components/brand-match-list";
@@ -43,6 +44,23 @@ export function CreatorReportView({
           <ArrowLeft className="h-4 w-4" />
           {backLabel}
         </Link>
+
+        <ReportActions analysis={analysis} />
+
+        {meta?.cached && (
+          <p className="mt-3 text-xs text-muted-foreground">
+            Cached result · model {meta.modelVersion}
+          </p>
+        )}
+
+        {meta?.scoringNotes?.map((note) => (
+          <p
+            key={note}
+            className="mt-3 rounded-lg border border-white/[0.08] bg-white/[0.03] px-4 py-2 text-xs text-muted-foreground"
+          >
+            {note}
+          </p>
+        ))}
 
         {meta?.warnings?.map((w) => (
           <p
@@ -179,7 +197,7 @@ export function CreatorReportView({
                 Brand partnership recommendations
               </h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                NLP embeddings · cosine similarity · RAG retrieval
+                Semantic embeddings + pgvector retrieval · commerce rerank
               </p>
               <div className="mt-6">
                 <BrandMatchList
@@ -193,7 +211,7 @@ export function CreatorReportView({
                 ML feature importance
               </h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                Ensemble model · {modelVersion}
+                Trained logistic model · {modelVersion}
               </p>
               <div className="mt-6">
                 <FeatureImportanceChart data={featureImportance} />

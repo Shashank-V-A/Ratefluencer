@@ -38,7 +38,7 @@ export function AuthenticityPanel({
         </span>
       </div>
       <p className="mt-1 text-sm text-muted-foreground">
-        ML signals for fake followers, pods, bots, and engagement spikes.
+        Heuristic risk flags from public post metrics — not a third-party fraud API.
       </p>
       <ul className="mt-6 space-y-3">
         {(Object.keys(flags) as (keyof AuthenticityFlags)[]).map((key) => (

@@ -1,6 +1,7 @@
 import { analyzeLiveCreator } from "@/lib/analyze";
 import { getAllPlatformStatus } from "@/lib/env";
 import { PlatformApiError } from "@/lib/platforms";
+import { getSessionId } from "@/lib/session";
 import type { Platform } from "@/lib/types";
 import { NextResponse } from "next/server";
 
@@ -17,6 +18,7 @@ export async function POST(request: Request) {
   const handle =
     typeof body.handle === "string" ? body.handle.trim().replace(/^@/, "") : "";
   const platform = parsePlatform(body.platform);
+  const skipCache = body.skipCache === true;
 
   if (!handle) {
     return NextResponse.json(
@@ -37,7 +39,11 @@ export async function POST(request: Request) {
   }
 
   try {
-    const result = await analyzeLiveCreator(platform, handle);
+    const sessionId = await getSessionId();
+    const result = await analyzeLiveCreator(platform, handle, {
+      sessionId,
+      skipCache,
+    });
     return NextResponse.json(result);
   } catch (e) {
     if (e instanceof PlatformApiError) {
