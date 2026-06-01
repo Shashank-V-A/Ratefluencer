@@ -15,6 +15,7 @@ export interface AnalysisMeta {
   fetchedAt: string;
   profileUrl?: string;
   avatarUrl?: string;
+  warnings?: string[];
 }
 
 export interface AudienceDemographics {

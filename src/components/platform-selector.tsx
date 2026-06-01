@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import type { Platform } from "@/lib/types";
 
@@ -27,14 +28,15 @@ function XIcon({ className }: { className?: string }) {
   );
 }
 
-const PLATFORMS: {
+const ALL_PLATFORMS: {
   id: Platform;
   label: string;
   icon: React.ComponentType<{ className?: string }>;
+  envKey: "youtube" | "x" | "instagram";
 }[] = [
-  { id: "instagram", label: "Instagram", icon: InstagramIcon },
-  { id: "youtube", label: "YouTube", icon: YoutubeIcon },
-  { id: "x", label: "X", icon: XIcon },
+  { id: "youtube", label: "YouTube", icon: YoutubeIcon, envKey: "youtube" },
+  { id: "x", label: "X", icon: XIcon, envKey: "x" },
+  { id: "instagram", label: "Instagram", icon: InstagramIcon, envKey: "instagram" },
 ];
 
 export function PlatformSelector({
@@ -46,26 +48,60 @@ export function PlatformSelector({
   onChange: (p: Platform) => void;
   disabled?: boolean;
 }) {
+  const [configured, setConfigured] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    fetch("/api/platforms/status")
+      .then((r) => r.json())
+      .then((d) => {
+        const p = d.platforms as Record<string, { configured: boolean }>;
+        setConfigured({
+          youtube: p.youtube?.configured ?? false,
+          x: p.x?.configured ?? false,
+          instagram: p.instagram?.configured ?? false,
+        });
+      })
+      .catch(() => setConfigured({ youtube: false, x: false, instagram: false }));
+  }, []);
+
+  const visible = ALL_PLATFORMS.filter(
+    (p) => p.envKey !== "instagram" || configured.instagram
+  );
+
+  useEffect(() => {
+    if (visible.length && !visible.some((p) => p.id === value)) {
+      onChange(visible[0]!.id);
+    }
+  }, [visible, value, onChange]);
+
   return (
-    <div className="flex flex-wrap gap-2">
-      {PLATFORMS.map((p) => (
-        <button
-          key={p.id}
-          type="button"
-          disabled={disabled}
-          onClick={() => onChange(p.id)}
-          className={cn(
-            "inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm transition-all",
-            value === p.id
-              ? "border-primary bg-primary/15 text-primary"
-              : "border-border/80 text-muted-foreground hover:border-primary/30 hover:text-foreground",
-            disabled && "opacity-50"
-          )}
-        >
-          <p.icon className="h-4 w-4" />
-          {p.label}
-        </button>
-      ))}
+    <div className="space-y-2">
+      <div className="flex flex-wrap gap-2">
+        {visible.map((p) => (
+          <button
+            key={p.id}
+            type="button"
+            disabled={disabled || !configured[p.envKey]}
+            onClick={() => onChange(p.id)}
+            className={cn(
+              "inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm transition-all",
+              value === p.id
+                ? "border-primary bg-primary/15 text-primary"
+                : "border-border/80 text-muted-foreground hover:border-primary/30 hover:text-foreground",
+              (disabled || !configured[p.envKey]) && "opacity-50"
+            )}
+          >
+            <p.icon className="h-4 w-4" />
+            {p.label}
+          </button>
+        ))}
+      </div>
+      {!configured.instagram && (
+        <p className="text-xs text-muted-foreground">
+          Instagram hidden until Meta credentials are added — YouTube and X are
+          enough for now.
+        </p>
+      )}
     </div>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import type { AnalysisResult, Platform } from "@/lib/types";
 import { encodeLiveReportId } from "@/lib/report-id";
@@ -25,14 +25,30 @@ const LIVE_EXAMPLES: Record<Platform, string> = {
   tiktok: "",
 };
 
+type PlatformStatus = Record<string, { configured: boolean }>;
+
 export default function AnalyzePage() {
-  const [platform, setPlatform] = useState<Platform>("instagram");
+  const [platform, setPlatform] = useState<Platform>("youtube");
+  const [apiStatus, setApiStatus] = useState<PlatformStatus | null>(null);
   const [handle, setHandle] = useState("");
   const [mode, setMode] = useState<"live" | "demo">("live");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [warning, setWarning] = useState<string | null>(null);
   const [result, setResult] = useState<AnalysisResult | null>(null);
+
+  useEffect(() => {
+    fetch("/api/platforms/status")
+      .then((r) => r.json())
+      .then((d) => setApiStatus(d.platforms))
+      .catch(() => setApiStatus(null));
+  }, []);
+
+  const platformReady =
+    mode === "demo" ||
+    (platform === "youtube" && apiStatus?.youtube?.configured) ||
+    (platform === "x" && apiStatus?.x?.configured) ||
+    (platform === "instagram" && apiStatus?.instagram?.configured);
 
   async function runAnalysis(
     targetHandle?: string,
@@ -143,7 +159,7 @@ export default function AnalyzePage() {
               onChange={(e) => setHandle(e.target.value)}
             />
           </div>
-          <Button type="submit" disabled={loading}>
+          <Button type="submit" disabled={loading || (mode === "live" && !platformReady)}>
             {loading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
@@ -175,6 +191,15 @@ export default function AnalyzePage() {
               )}
         </div>
 
+        {mode === "live" && apiStatus && !platformReady && (
+          <p className="mt-6 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+            Add <strong>{platform === "youtube" ? "YOUTUBE_API_KEY" : "X_API_BEARER_TOKEN"}</strong> to{" "}
+            <code className="rounded bg-black/20 px-1">.env.local</code> in the project
+            folder (not .env.example), save, then restart{" "}
+            <code className="rounded bg-black/20 px-1">npm run dev</code>.
+          </p>
+        )}
+
         {error && (
           <p className="mt-6 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
             {error}
@@ -186,6 +211,15 @@ export default function AnalyzePage() {
             {warning}
           </p>
         )}
+
+        {result?.meta?.warnings?.map((w) => (
+          <p
+            key={w}
+            className="mt-6 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200/90"
+          >
+            {w}
+          </p>
+        ))}
 
         {result && (
           <div className="mt-10 rounded-2xl border border-border/80 bg-card/50 p-8">

@@ -33,14 +33,27 @@ export function buildProfileFromFetched(
   raw: FetchedCreatorRaw
 ): InfluencerProfile {
   const media = raw.media;
-  const postsLast30Days = media.filter((m) => daysAgo(m.timestamp) <= 30).length;
-  const postsLast90Days = media.filter((m) => daysAgo(m.timestamp) <= 90).length;
+  let postsLast30Days = media.filter((m) => daysAgo(m.timestamp) <= 30).length;
+  let postsLast90Days = media.filter((m) => daysAgo(m.timestamp) <= 90).length;
 
-  const totalLikes = media.reduce((s, m) => s + m.likes, 0);
-  const totalComments = media.reduce((s, m) => s + m.comments, 0);
-  const totalShares = media.reduce((s, m) => s + m.shares, 0);
-  const totalSaves = media.reduce((s, m) => s + m.saves, 0);
-  const totalViews = media.reduce((s, m) => s + m.views, 0);
+  let totalLikes = media.reduce((s, m) => s + m.likes, 0);
+  let totalComments = media.reduce((s, m) => s + m.comments, 0);
+  let totalShares = media.reduce((s, m) => s + m.shares, 0);
+  let totalSaves = media.reduce((s, m) => s + m.saves, 0);
+  let totalViews = media.reduce((s, m) => s + m.views, 0);
+
+  // X free tier: profile-only fallback when tweets are unavailable
+  if (media.length === 0 && raw.platform === "x" && raw.followers > 0) {
+    const estPosts = Math.min(30, Math.max(1, Math.floor((raw.mediaCount || 100) / 100)));
+    postsLast30Days = estPosts;
+    postsLast90Days = estPosts * 3;
+    const estEng = raw.followers * 0.008;
+    totalLikes = Math.round(estEng * 0.7);
+    totalComments = Math.round(estEng * 0.15);
+    totalShares = Math.round(estEng * 0.1);
+    totalSaves = Math.round(estEng * 0.05);
+    totalViews = Math.round(raw.followers * 0.12);
+  }
 
   const videoItems = media.filter(
     (m) => m.views > 0 || m.mediaType === "video" || m.mediaType === "REEL"
@@ -59,10 +72,9 @@ export function buildProfileFromFetched(
   const { niche, nicheLabel, tags } = detectNiche(textBlob);
 
   const reach = Math.max(raw.followers, 1);
+  const postCount = Math.max(media.length, postsLast30Days > 0 ? 1 : 1);
   const engagementRate =
-    (totalLikes + totalComments + totalShares + totalSaves) /
-    reach /
-    Math.max(media.length, 1);
+    (totalLikes + totalComments + totalShares + totalSaves) / reach / postCount;
 
   const signals = inferSignals(raw, {
     totalLikes,

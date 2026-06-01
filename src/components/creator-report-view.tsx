@@ -49,6 +49,14 @@ export function CreatorReportView({
             Live API data · fetched {new Date(meta.fetchedAt).toLocaleString()}
           </p>
         )}
+        {meta?.warnings?.map((w) => (
+          <p
+            key={w}
+            className="mt-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200/90"
+          >
+            {w}
+          </p>
+        ))}
 
         <div className="mt-8 grid gap-10 lg:grid-cols-[1fr_280px]">
           <div>

@@ -55,11 +55,21 @@ export async function analyzeLiveCreator(
   const raw = await fetchCreatorFromPlatform(platform, handle);
   const profile = buildProfileFromFetched(raw);
   const result = analyzeInfluencer(profile, brands);
+  const warnings: string[] = [];
+  if (typeof raw.meta?.xTierNote === "string") {
+    warnings.push(raw.meta.xTierNote);
+  }
+  if (raw.meta?.profileOnly && platform === "x") {
+    warnings.push(
+      "No recent tweets returned — authenticity and engagement scores are estimates from follower/following ratios."
+    );
+  }
   return withMeta(result, {
     source: "live",
     fetchedAt: new Date().toISOString(),
     profileUrl: raw.profileUrl,
     avatarUrl: raw.avatarUrl,
+    warnings: warnings.length ? warnings : undefined,
   });
 }
 

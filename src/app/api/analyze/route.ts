@@ -71,11 +71,15 @@ export async function POST(request: Request) {
           { status: 200 }
         );
       }
+      const envHint =
+        e.code === "NOT_CONFIGURED"
+          ? "Create .env.local in the project root (copy .env.example), add your API keys, then restart npm run dev."
+          : e.hint;
       return NextResponse.json(
         {
           error: e.message,
           code: e.code,
-          hint: e.hint,
+          hint: envHint,
           platforms: getAllPlatformStatus(),
         },
         { status: e.status ?? 502 }

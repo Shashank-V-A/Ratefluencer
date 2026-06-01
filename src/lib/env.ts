@@ -39,9 +39,37 @@ export function getAllPlatformStatus() {
   };
 }
 
+function normalizeEnvSecret(value: string | undefined): string | undefined {
+  if (!value?.trim()) return undefined;
+  let v = value.trim();
+  if (
+    (v.startsWith('"') && v.endsWith('"')) ||
+    (v.startsWith("'") && v.endsWith("'"))
+  ) {
+    v = v.slice(1, -1);
+  }
+  try {
+    return decodeURIComponent(v);
+  } catch {
+    return v;
+  }
+}
+
 export function getXBearerToken(): string | undefined {
   return (
-    process.env.X_API_BEARER_TOKEN?.trim() ||
-    process.env.TWITTER_BEARER_TOKEN?.trim()
+    normalizeEnvSecret(process.env.X_API_BEARER_TOKEN) ||
+    normalizeEnvSecret(process.env.TWITTER_BEARER_TOKEN)
   );
+}
+
+/** Platforms you can use without Instagram */
+export function getCorePlatformStatus() {
+  return {
+    youtube: getYouTubeStatus(),
+    x: getXStatus(),
+  };
+}
+
+export function isInstagramOptional() {
+  return !getInstagramStatus().configured;
 }

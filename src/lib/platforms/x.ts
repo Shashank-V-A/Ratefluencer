@@ -45,6 +45,28 @@ function normalizeHandle(handle: string): string {
   return handle.replace(/^@/, "").trim();
 }
 
+function mapTweets(data: XTweetsResponse["data"]): FetchedMediaItem[] {
+  const media: FetchedMediaItem[] = [];
+  for (const t of data ?? []) {
+    const pm = t.public_metrics;
+    media.push({
+      id: t.id,
+      caption: t.text ?? "",
+      likes: pm?.like_count ?? 0,
+      comments: pm?.reply_count ?? 0,
+      views: pm?.impression_count ?? 0,
+      shares: (pm?.retweet_count ?? 0) + (pm?.quote_count ?? 0),
+      saves: pm?.bookmark_count ?? 0,
+      timestamp: t.created_at ?? new Date().toISOString(),
+      mediaType: "tweet",
+    });
+  }
+  return media.sort(
+    (a, b) =>
+      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+  );
+}
+
 export async function fetchXCreator(handle: string): Promise<FetchedCreatorRaw> {
   const status = getXStatus();
   if (!status.configured) {
@@ -52,7 +74,7 @@ export async function fetchXCreator(handle: string): Promise<FetchedCreatorRaw> 
       "X API is not configured",
       "NOT_CONFIGURED",
       503,
-      `Add to .env.local: ${status.missing.join(", ")}. Create a project at developer.x.com with Elevated/Basic access.`
+      `Add X_API_BEARER_TOKEN to .env.local (see docs/API_KEYS.md).`
     );
   }
 
@@ -73,42 +95,29 @@ export async function fetchXCreator(handle: string): Promise<FetchedCreatorRaw> 
   }
 
   const user = userRes.data;
-  const media: FetchedMediaItem[] = [];
+  let media: FetchedMediaItem[] = [];
+  let xTierNote: string | undefined;
 
-  try {
-    const tweetsRes = await fetchJson<XTweetsResponse>(
-      `${X_API}/users/${user.id}/tweets?max_results=100&tweet.fields=public_metrics,created_at&exclude=retweets,replies`,
-      { bearerToken: token }
-    );
+  // Free / pay-as-you-go: try a small batch first (lower cost)
+  const tweetAttempts = [10, 5];
 
-    for (const t of tweetsRes.data ?? []) {
-      const pm = t.public_metrics;
-      media.push({
-        id: t.id,
-        caption: t.text ?? "",
-        likes: pm?.like_count ?? 0,
-        comments: pm?.reply_count ?? 0,
-        views: pm?.impression_count ?? 0,
-        shares: (pm?.retweet_count ?? 0) + (pm?.quote_count ?? 0),
-        saves: pm?.bookmark_count ?? 0,
-        timestamp: t.created_at ?? new Date().toISOString(),
-        mediaType: "tweet",
-      });
-    }
-    media.sort(
-      (a, b) =>
-        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-    );
-  } catch (e) {
-    if (e instanceof PlatformApiError && e.status === 403) {
-      throw new PlatformApiError(
-        "X API tier does not allow reading user tweets",
-        "X_FORBIDDEN",
-        403,
-        "Upgrade your X developer project or ensure User tweet read permission."
+  for (const maxResults of tweetAttempts) {
+    try {
+      const tweetsRes = await fetchJson<XTweetsResponse>(
+        `${X_API}/users/${user.id}/tweets?max_results=${maxResults}&tweet.fields=public_metrics,created_at&exclude=retweets,replies`,
+        { bearerToken: token }
       );
+      media = mapTweets(tweetsRes.data);
+      if (media.length > 0) break;
+    } catch (e) {
+      const isTierLimit =
+        e instanceof PlatformApiError &&
+        (e.status === 403 || e.status === 402 || e.status === 429);
+      if (!isTierLimit) throw e;
+      xTierNote =
+        "X free/pay-as-you-go tier: tweet timeline not available. Scores use public profile metrics only — less accurate than YouTube.";
+      break;
     }
-    throw e;
   }
 
   const pm = user.public_metrics;
@@ -125,6 +134,10 @@ export async function fetchXCreator(handle: string): Promise<FetchedCreatorRaw> 
     following: pm?.following_count ?? 0,
     mediaCount: pm?.tweet_count ?? media.length,
     media,
-    meta: { listedCount: pm?.listed_count },
+    meta: {
+      listedCount: pm?.listed_count,
+      xTierNote,
+      profileOnly: media.length === 0,
+    },
   };
 }
