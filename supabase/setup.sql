@@ -48,20 +48,9 @@ create table if not exists public.saved_reports (
 
 create index if not exists saved_reports_session_idx on public.saved_reports (session_id, created_at desc);
 
-create table if not exists public.shortlists (
-  id uuid primary key default gen_random_uuid(),
-  session_id text not null,
-  name text not null,
-  report_ids uuid[] not null default '{}',
-  created_at timestamptz not null default now()
-);
-
-create index if not exists shortlists_session_idx on public.shortlists (session_id);
-
 alter table public.analysis_cache enable row level security;
 alter table public.brands enable row level security;
 alter table public.saved_reports enable row level security;
-alter table public.shortlists enable row level security;
 
 create index if not exists brands_embedding_hnsw_idx
   on public.brands using hnsw (embedding vector_cosine_ops);

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { GlassPanel, PageShell, PageTitle } from "@/components/ui/page-shell";
+import { ProfileAvatar } from "@/components/ui/profile-avatar";
 import { encodeLiveReportId } from "@/lib/report-id";
 import type { Platform } from "@/lib/types";
 
@@ -13,6 +14,8 @@ type SavedRow = {
   display_name: string;
   rank_mint_score: number;
   created_at: string;
+  avatar_url?: string | null;
+  avatar_gradient: string;
 };
 
 export default function SavedPage() {
@@ -59,11 +62,20 @@ export default function SavedPage() {
             key={r.id}
             className="flex flex-wrap items-center justify-between gap-4"
           >
-            <div>
-              <p className="font-medium">{r.display_name}</p>
-              <p className="text-sm text-muted-foreground">
-                @{r.handle} · {r.platform} · RankMint {r.rank_mint_score}
-              </p>
+            <div className="flex min-w-0 items-center gap-4">
+              <ProfileAvatar
+                name={r.display_name}
+                avatarUrl={r.avatar_url ?? undefined}
+                avatarGradient={r.avatar_gradient}
+                size={52}
+                className="shrink-0"
+              />
+              <div className="min-w-0">
+                <p className="font-medium">{r.display_name}</p>
+                <p className="text-sm text-muted-foreground">
+                  @{r.handle} · {r.platform} · RankMint {r.rank_mint_score}
+                </p>
+              </div>
             </div>
             <div className="flex gap-2">
               <Link

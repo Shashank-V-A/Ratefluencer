@@ -33,7 +33,7 @@ const sb = createClient(url, key, {
   auth: { persistSession: false, autoRefreshToken: false },
 });
 
-const tables = ["analysis_cache", "brands", "saved_reports", "shortlists"];
+const tables = ["analysis_cache", "brands", "saved_reports"];
 let ok = true;
 
 for (const table of tables) {

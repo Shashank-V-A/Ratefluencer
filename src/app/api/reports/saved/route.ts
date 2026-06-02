@@ -3,6 +3,35 @@ import { getSessionId } from "@/lib/session";
 import type { AnalysisResult } from "@/lib/types";
 import { NextResponse } from "next/server";
 
+const DEFAULT_AVATAR_GRADIENT =
+  "from-orange-400 via-amber-300 to-orange-200";
+
+function avatarFromAnalysis(
+  analysis: unknown,
+  handle: string
+): { avatarUrl?: string; avatarGradient: string } {
+  const a = analysis as AnalysisResult | null;
+  if (a?.profile?.avatarGradient) {
+    return {
+      avatarUrl: a.meta?.avatarUrl,
+      avatarGradient: a.profile.avatarGradient,
+    };
+  }
+  const gradients = [
+    "from-rose-400 via-orange-300 to-amber-200",
+    "from-amber-300 via-orange-200 to-yellow-100",
+    "from-indigo-400 via-violet-400 to-fuchsia-300",
+    "from-orange-400 via-amber-300 to-orange-200",
+    "from-fuchsia-500 via-pink-400 to-rose-300",
+  ];
+  let h = 0;
+  for (let i = 0; i < handle.length; i++) h += handle.charCodeAt(i);
+  return {
+    avatarUrl: a?.meta?.avatarUrl,
+    avatarGradient: gradients[h % gradients.length] ?? DEFAULT_AVATAR_GRADIENT,
+  };
+}
+
 export async function GET() {
   const sessionId = await getSessionId();
   const supabase = getSupabaseAdmin();
@@ -12,7 +41,9 @@ export async function GET() {
 
   const { data, error } = await supabase
     .from("saved_reports")
-    .select("id, platform, handle, display_name, rank_mint_score, created_at, notes")
+    .select(
+      "id, platform, handle, display_name, rank_mint_score, created_at, notes, analysis"
+    )
     .eq("session_id", sessionId)
     .order("created_at", { ascending: false })
     .limit(50);
@@ -20,7 +51,26 @@ export async function GET() {
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
-  return NextResponse.json({ reports: data ?? [] });
+
+  const reports = (data ?? []).map((row) => {
+    const { avatarUrl, avatarGradient } = avatarFromAnalysis(
+      row.analysis,
+      row.handle
+    );
+    return {
+      id: row.id,
+      platform: row.platform,
+      handle: row.handle,
+      display_name: row.display_name,
+      rank_mint_score: row.rank_mint_score,
+      created_at: row.created_at,
+      notes: row.notes,
+      avatar_url: avatarUrl ?? null,
+      avatar_gradient: avatarGradient,
+    };
+  });
+
+  return NextResponse.json({ reports });
 }
 
 export async function POST(request: Request) {

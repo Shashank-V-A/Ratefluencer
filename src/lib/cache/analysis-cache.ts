@@ -79,6 +79,3 @@ export async function setCachedAnalysis(
   );
 }
 
-export function clearMemoryCache() {
-  memory.clear();
-}
