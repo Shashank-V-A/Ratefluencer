@@ -5,6 +5,7 @@ import {
   embedText,
   type EmbeddingProvider,
 } from "@/lib/ml/embeddings";
+import { finiteOr } from "@/lib/ml/safe-number";
 import { getSupabaseAdmin } from "@/lib/supabase/server";
 
 export type BrandRecord = BrandProfile & {
@@ -180,7 +181,7 @@ export async function retrieveBrandCandidates(
             keywords: row.keywords ?? [],
             embedding: queryEmbedding,
           },
-          similarity: row.similarity,
+          similarity: finiteOr(Number(row.similarity), 0),
         })
       );
     }

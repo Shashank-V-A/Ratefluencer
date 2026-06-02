@@ -89,8 +89,8 @@ export function PlatformSelector({
               className={cn(
                 "inline-flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-medium transition-all duration-200",
                 selected
-                  ? "border-primary/35 bg-primary/12 text-primary shadow-[0_0_24px_-8px_oklch(0.75_0.1_78/40%)]"
-                  : "border-white/[0.08] bg-white/[0.02] text-muted-foreground hover:border-white/12 hover:bg-white/[0.04] hover:text-foreground",
+                  ? "border-primary/35 bg-primary/12 text-primary shadow-[0_0_24px_-8px_oklch(0.88_0.24_136/45%)]"
+                  : "border-primary/12 bg-primary/[0.03] text-muted-foreground hover:border-primary/22 hover:bg-primary/[0.06] hover:text-foreground",
                 (disabled || !configured[p.envKey]) &&
                   "cursor-not-allowed opacity-45"
               )}

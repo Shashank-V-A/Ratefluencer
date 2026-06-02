@@ -20,8 +20,14 @@ export function CreatorReportView({
   backHref?: string;
   backLabel?: string;
 }) {
-  const { profile, scores, growthForecast, featureImportance, modelVersion, meta } =
-    analysis;
+  const {
+    profile,
+    scores,
+    growthForecast,
+    featureImportance,
+    modelVersion,
+    meta,
+  } = analysis;
   const m = profile.metrics;
   const engagementRate =
     ((m.likes + m.comments + m.shares + m.saves) / Math.max(m.followers, 1)) *
@@ -46,21 +52,6 @@ export function CreatorReportView({
         </Link>
 
         <ReportActions analysis={analysis} />
-
-        {meta?.cached && (
-          <p className="mt-3 text-xs text-muted-foreground">
-            Cached result · model {meta.modelVersion}
-          </p>
-        )}
-
-        {meta?.scoringNotes?.map((note) => (
-          <p
-            key={note}
-            className="mt-3 rounded-lg border border-white/[0.08] bg-white/[0.03] px-4 py-2 text-xs text-muted-foreground"
-          >
-            {note}
-          </p>
-        ))}
 
         {meta?.warnings?.map((w) => (
           <p
@@ -162,7 +153,7 @@ export function CreatorReportView({
 
             <div className="mt-6 rounded-2xl border border-border/80 bg-card/40 p-6">
               <h2 className="font-display text-lg font-semibold">
-                Growth forecast (90 days)
+                Growth forecast (90 days, modeled)
               </h2>
               <dl className="mt-6 grid gap-4 sm:grid-cols-3">
                 <div className="rounded-lg bg-muted/25 p-4">
@@ -228,7 +219,7 @@ export function CreatorReportView({
                 label="RankMint™"
               />
               <p className="mt-6 text-sm text-muted-foreground">
-                Predicted campaign success
+                Estimated campaign success (modeled)
               </p>
               <p className="font-display text-3xl tabular-nums text-primary">
                 {scores.campaignSuccessProbability}%

@@ -16,17 +16,17 @@ export function SiteHeader() {
   const pathname = usePathname();
 
   return (
-    <header className="sticky top-0 z-50 border-b border-white/[0.06] bg-background/60 backdrop-blur-2xl backdrop-saturate-150">
+    <header className="sticky top-0 z-50 border-b border-primary/12 bg-background/75 backdrop-blur-2xl backdrop-saturate-150">
       <div className="mx-auto flex h-[4.25rem] max-w-6xl items-center justify-between gap-6 px-6">
         <Link href="/" className="group flex items-center gap-3">
-          <span className="relative flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl border border-primary/20 bg-gradient-to-br from-primary/25 to-primary/5">
+          <span className="relative flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl border border-primary/30 bg-gradient-to-br from-primary/30 to-primary/5 shadow-[0_0_20px_-6px_oklch(0.88_0.24_136/50%)]">
             <span className="font-display text-lg leading-none text-primary">
               R
             </span>
-            <span className="pointer-events-none absolute inset-0 bg-gradient-to-t from-transparent to-white/10" />
+            <span className="pointer-events-none absolute inset-0 bg-gradient-to-t from-transparent to-primary/10" />
           </span>
           <span className="font-display text-[1.35rem] tracking-tight text-foreground">
-            RankMint
+            Rank<span className="text-primary">Mint</span>
           </span>
         </Link>
 
@@ -42,8 +42,8 @@ export function SiteHeader() {
                 className={cn(
                   "rounded-lg px-4 py-2 text-sm font-medium transition-colors duration-200",
                   active
-                    ? "bg-white/[0.06] text-foreground"
-                    : "text-muted-foreground hover:bg-white/[0.04] hover:text-foreground"
+                    ? "bg-primary/10 text-primary shadow-[inset_0_0_0_1px_oklch(0.88_0.24_136/25%)]"
+                    : "text-muted-foreground hover:bg-primary/[0.06] hover:text-foreground"
                 )}
               >
                 {link.label}

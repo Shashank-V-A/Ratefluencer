@@ -25,11 +25,21 @@ export default function MethodologyPage() {
         <GlassPanel>
           <h2 className="font-display text-xl">RankMint™ score</h2>
           <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
-            Trained logistic regression on synthetic micro-UGC campaign labels
-            (<code className="rounded bg-white/5 px-1">ml/train_model.py</code>).
-            Coefficients are synced to production via{" "}
-            <code className="rounded bg-white/5 px-1">npm run ml:sync</code>.
-            Model version is shown on every report.
+            Logistic regression trained on documented campaign archetypes in{" "}
+            <code className="rounded bg-primary/10 px-1 text-primary/90">ml/campaign_labels.csv</code>{" "}
+            (creator tier, spend, CTR, sales). Replace or extend that file with
+            your real campaign outcomes and run{" "}
+            <code className="rounded bg-primary/10 px-1 text-primary/90">npm run ml:train</code> then{" "}
+            <code className="rounded bg-primary/10 px-1 text-primary/90">npm run ml:sync</code>.
+            Reports show the model version (e.g.{" "}
+            <code className="rounded bg-primary/10 px-1 text-primary/90">rm-trained-v1.1-campaign-labels</code>
+            ).
+          </p>
+          <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
+            <strong>Scale calibration:</strong> micro, mid, and mega creators use
+            separate caps and adjustments so a 20M-subscriber channel is not scored
+            like a dorm-room UGC account. Uncalibrated model output may appear in
+            scoring notes when tier calibration applies.
           </p>
         </GlassPanel>
 
@@ -39,7 +49,7 @@ export default function MethodologyPage() {
             By default, RankMint embeds creator bios and brand briefs with{" "}
             <strong>built-in semantic embeddings</strong> — no OpenAI or other
             third-party AI key required. If you set{" "}
-            <code className="rounded bg-white/5 px-1">OPENAI_API_KEY</code>,
+            <code className="rounded bg-primary/10 px-1 text-primary/90">OPENAI_API_KEY</code>,
             cloud embeddings are used instead (optional upgrade). With Supabase
             configured, top brands are retrieved via pgvector cosine similarity,
             then reranked with commerce signals (save rate, share rate, content
@@ -56,7 +66,9 @@ export default function MethodologyPage() {
           <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
             Heuristic risk flags from public metrics (engagement variance, comment
             patterns, follower/following ratio). Not a third-party fraud API — treat
-            as signals, not ground truth.
+            as signals, not ground truth. At very large follower counts, “purchased
+            followers” style signals are dampened because mega accounts often show
+            atypical but legitimate public metrics.
           </p>
         </GlassPanel>
 

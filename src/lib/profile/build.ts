@@ -1,6 +1,11 @@
 import type { FetchedCreatorRaw } from "@/lib/platforms/types";
+import { finiteOr } from "@/lib/ml/safe-number";
 import { inferSignals, unavailableDemographics } from "@/lib/signals/infer";
 import type { InfluencerProfile } from "@/lib/types";
+
+function num(value: number | undefined | null): number {
+  return finiteOr(Number(value), 0);
+}
 
 function daysAgo(iso: string): number {
   return (Date.now() - new Date(iso).getTime()) / (1000 * 60 * 60 * 24);
@@ -35,11 +40,11 @@ export function buildProfileFromFetched(
   let postsLast30Days = media.filter((m) => daysAgo(m.timestamp) <= 30).length;
   let postsLast90Days = media.filter((m) => daysAgo(m.timestamp) <= 90).length;
 
-  let totalLikes = media.reduce((s, m) => s + m.likes, 0);
-  let totalComments = media.reduce((s, m) => s + m.comments, 0);
-  let totalShares = media.reduce((s, m) => s + m.shares, 0);
-  let totalSaves = media.reduce((s, m) => s + m.saves, 0);
-  let totalViews = media.reduce((s, m) => s + m.views, 0);
+  let totalLikes = media.reduce((s, m) => s + num(m.likes), 0);
+  let totalComments = media.reduce((s, m) => s + num(m.comments), 0);
+  let totalShares = media.reduce((s, m) => s + num(m.shares), 0);
+  let totalSaves = media.reduce((s, m) => s + num(m.saves), 0);
+  let totalViews = media.reduce((s, m) => s + num(m.views), 0);
 
   if (media.length === 0 && raw.platform === "x" && raw.followers > 0) {
     const estPosts = Math.min(
@@ -61,7 +66,7 @@ export function buildProfileFromFetched(
   );
   const avgReelViews =
     videoItems.length > 0
-      ? videoItems.reduce((s, m) => s + m.views, 0) / videoItems.length
+      ? videoItems.reduce((s, m) => s + num(m.views), 0) / videoItems.length
       : raw.followers > 0
         ? totalViews / Math.max(media.length, 1)
         : 0;
@@ -124,9 +129,9 @@ export function buildProfileFromFetched(
     demographics,
     signals,
     pastCampaigns: 0,
-    campaignSuccessRate: Math.min(
-      0.92,
-      0.45 + engagementRate * 8 + saveToLike * 0.5
+    campaignSuccessRate: finiteOr(
+      Math.min(0.92, 0.45 + engagementRate * 8 + saveToLike * 0.5),
+      0.55
     ),
   };
 }

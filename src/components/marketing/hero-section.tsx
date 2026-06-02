@@ -23,7 +23,7 @@ export function HeroSection() {
           </p>
           <h1 className="font-display mt-5 max-w-xl text-4xl font-normal leading-[1.08] tracking-tight text-foreground md:text-6xl md:leading-[1.02]">
             Rank creators by{" "}
-            <span className="text-gradient-gold">business impact</span>, not
+            <span className="text-gradient-radium">business impact</span>, not
             vanity metrics.
           </h1>
           <p className="mt-6 max-w-lg text-base leading-relaxed text-muted-foreground md:text-lg">
@@ -41,12 +41,12 @@ export function HeroSection() {
             </Link>
             <Link
               href="/compare"
-              className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-7 py-3.5 text-sm font-medium text-foreground transition-colors hover:border-white/15 hover:bg-white/[0.07]"
+              className="inline-flex items-center gap-2 rounded-xl border border-primary/20 bg-primary/[0.04] px-7 py-3.5 text-sm font-medium text-foreground transition-colors hover:border-primary/35 hover:bg-primary/[0.08]"
             >
               Compare two creators
             </Link>
           </div>
-          <dl className="mt-14 grid grid-cols-3 gap-4 border-t border-white/[0.08] pt-10 sm:gap-6">
+          <dl className="mt-14 grid grid-cols-3 gap-4 border-t border-primary/15 pt-10 sm:gap-6">
             {[
               { n: "4", label: "Scoring engines" },
               { n: "3", label: "Live platforms" },

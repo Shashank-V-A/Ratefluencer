@@ -4,6 +4,7 @@ import {
   RANK_MINT_COEFFICIENTS,
 } from "./coefficients";
 import { extractFeatures, featuresToVector, type MLFeatures } from "./features";
+import { finiteOr, scorePercent } from "./safe-number";
 
 function sigmoid(x: number): number {
   return 1 / (1 + Math.exp(-x));
@@ -11,19 +12,22 @@ function sigmoid(x: number): number {
 
 export function computeRankMintScore(profile: InfluencerProfile): {
   score: number;
+  rawRankMint: number;
   campaignSuccessProbability: number;
   featureImportance: { feature: string; impact: number }[];
 } {
   const features = extractFeatures(profile);
-  const z = dotProduct(features);
-  const probability = sigmoid(z);
-  const score = Math.round(probability * 100);
+  const z = finiteOr(dotProduct(features));
+  const probability = finiteOr(sigmoid(z), 0.5);
+  const rawScore = scorePercent(probability * 100);
+  const rawCampaign = Math.round(finiteOr(probability * 1000, 500)) / 10;
 
   const importance = computeFeatureImportance(features);
 
   return {
-    score,
-    campaignSuccessProbability: Math.round(probability * 1000) / 10,
+    score: rawScore,
+    rawRankMint: rawScore,
+    campaignSuccessProbability: rawCampaign,
     featureImportance: importance,
   };
 }

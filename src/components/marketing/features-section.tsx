@@ -61,7 +61,7 @@ export function FeaturesSection() {
               key={item.title}
               className={`glass-panel group p-7 transition-colors duration-300 hover:border-primary/15 ${item.className}`}
             >
-              <div className="mb-5 inline-flex rounded-xl border border-white/[0.08] bg-white/[0.04] p-2.5 text-primary transition-colors group-hover:border-primary/20 group-hover:bg-primary/10">
+              <div className="mb-5 inline-flex rounded-xl border border-primary/15 bg-primary/[0.06] p-2.5 text-primary transition-colors group-hover:border-primary/30 group-hover:bg-primary/12 group-hover:shadow-[0_0_20px_-8px_oklch(0.88_0.24_136/40%)]">
                 <item.icon className="h-5 w-5" strokeWidth={1.5} />
               </div>
               <h3 className="font-display text-xl tracking-tight">

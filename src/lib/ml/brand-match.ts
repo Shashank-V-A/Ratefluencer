@@ -6,10 +6,7 @@ import {
   type EmbeddingProvider,
 } from "@/lib/ml/embeddings";
 import { extractFeatures } from "./features";
-
-function clamp(n: number, min: number, max: number) {
-  return Math.min(max, Math.max(min, n));
-}
+import { clampFinite, finiteOr, scorePercent } from "./safe-number";
 
 function buildRationale(
   profile: InfluencerProfile,
@@ -63,8 +60,9 @@ export async function matchBrands(
   const ranked = candidates.map(({ brand, similarity }) => {
     const commerceFit =
       f.saveRate * 0.35 + f.shareRate * 0.25 + f.contentCategoryFit * 0.4;
-    const raw = similarity * 0.55 + commerceFit * 0.45;
-    const score = Math.round(clamp(raw, 0, 1) * 100);
+    const raw =
+      finiteOr(similarity) * 0.55 + finiteOr(commerceFit) * 0.45;
+    const score = scorePercent(clampFinite(raw, 0, 1) * 100);
     const rationale = buildRationale(
       profile,
       brand,

@@ -130,11 +130,11 @@ export async function fetchYouTubeCreator(
             .filter(Boolean)
             .join(" ")
             .slice(0, 500),
-          likes: parseInt(v.statistics?.likeCount ?? "0", 10),
-          comments: parseInt(v.statistics?.commentCount ?? "0", 10),
-          views: parseInt(v.statistics?.viewCount ?? "0", 10),
+          likes: Number(v.statistics?.likeCount) || 0,
+          comments: Number(v.statistics?.commentCount) || 0,
+          views: Number(v.statistics?.viewCount) || 0,
           shares: 0,
-          saves: parseInt(v.statistics?.favoriteCount ?? "0", 10),
+          saves: Number(v.statistics?.favoriteCount) || 0,
           timestamp: v.snippet?.publishedAt ?? new Date().toISOString(),
           mediaType: "video",
         });

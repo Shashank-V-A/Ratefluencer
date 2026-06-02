@@ -66,25 +66,25 @@ export default function BrandsPage() {
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
-            className="border-white/10 bg-white/[0.03]"
+            className="border-primary/15 bg-primary/[0.04]"
           />
           <Input
             placeholder="Category (e.g. D2C Beauty)"
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            className="border-white/10 bg-white/[0.03]"
+            className="border-primary/15 bg-primary/[0.04]"
           />
           <textarea
             placeholder="Brand brief — who you partner with and why"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="min-h-24 w-full rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-sm"
+            className="min-h-24 w-full rounded-lg border border-primary/15 bg-primary/[0.04] px-3 py-2 text-sm"
           />
           <Input
             placeholder="Keywords, comma-separated"
             value={keywords}
             onChange={(e) => setKeywords(e.target.value)}
-            className="border-white/10 bg-white/[0.03]"
+            className="border-primary/15 bg-primary/[0.04]"
           />
           <Button type="submit" disabled={loading}>
             {loading ? "Adding…" : "Add brand"}

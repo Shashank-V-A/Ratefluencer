@@ -8,6 +8,12 @@ const jsonPath = path.join(root, "ml", "exported_coefficients.json");
 const outPath = path.join(root, "src", "lib", "ml", "coefficients.ts");
 
 const coefs = JSON.parse(fs.readFileSync(jsonPath, "utf8"));
+const metaPath = path.join(root, "ml", "training_meta.json");
+let modelVersion = "rm-trained-v1.0-synthetic";
+if (fs.existsSync(metaPath)) {
+  const meta = JSON.parse(fs.readFileSync(metaPath, "utf8"));
+  if (meta.modelVersion) modelVersion = meta.modelVersion;
+}
 
 const lines = Object.entries(coefs).map(
   ([k, v]) => `  ${k}: ${Number(v).toFixed(6)},`
@@ -15,8 +21,8 @@ const lines = Object.entries(coefs).map(
 
 const content = `/**
  * Logistic-regression coefficients exported from ml/train_model.py
- * (synthetic micro-UGC campaign labels, documented in ml/train_model.py).
- * Regenerate: python ml/train_model.py && npm run ml:sync
+ * (ml/campaign_labels.csv or synthetic fallback — see ml/README.md).
+ * Regenerate: npm run ml:train
  */
 export const RANK_MINT_COEFFICIENTS = {
 ${lines.join("\n")}
@@ -39,7 +45,7 @@ export const FEATURE_LABELS: Record<keyof typeof RANK_MINT_COEFFICIENTS, string>
   microCreatorBonus: "Micro-UGC Fit",
 };
 
-export const MODEL_VERSION = "rm-trained-v1.0-synthetic";
+export const MODEL_VERSION = "${modelVersion}";
 `;
 
 fs.writeFileSync(outPath, content);

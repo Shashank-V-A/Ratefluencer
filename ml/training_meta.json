@@ -1,0 +1,6 @@
+{
+  "modelVersion": "rm-trained-v1.1-campaign-labels",
+  "dataset": "campaign_labels.csv",
+  "testAccuracy": 0.9524,
+  "rows": 420
+}

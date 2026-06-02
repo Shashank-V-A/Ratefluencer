@@ -28,10 +28,10 @@ export default function HomePage() {
         </div>
       </section>
 
-      <footer className="border-t border-white/[0.06] px-6 py-12">
+      <footer className="border-t border-primary/12 px-6 py-12">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 text-center text-xs text-muted-foreground md:flex-row md:text-left">
-          <p className="font-display text-sm text-foreground/80">
-            RankMint
+          <p className="font-display text-sm text-foreground/90">
+            Rank<span className="text-primary">Mint</span>
           </p>
           <p>Live micro-UGC intelligence · YouTube · X · Instagram</p>
         </div>

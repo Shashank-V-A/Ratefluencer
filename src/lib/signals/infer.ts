@@ -1,4 +1,6 @@
 import type { FetchedCreatorRaw } from "@/lib/platforms/types";
+import { authenticityScaleFactor } from "@/lib/ml/creator-tier";
+import { clampFinite, finiteOr } from "@/lib/ml/safe-number";
 import type { InfluencerProfile } from "@/lib/types";
 
 function daysAgo(iso: string): number {
@@ -42,7 +44,11 @@ export function inferSignals(
   const totalLikes = Math.max(aggregates.totalLikes, 1);
 
   const engagementRates = media.map((m) => {
-    const eng = m.likes + m.comments + m.shares + m.saves;
+    const eng =
+      finiteOr(m.likes) +
+      finiteOr(m.comments) +
+      finiteOr(m.shares) +
+      finiteOr(m.saves);
     return eng / reach;
   });
 
@@ -60,27 +66,38 @@ export function inferSignals(
   const avgEngPerPost =
     media.length > 0
       ? media.reduce(
-          (s, m) => s + m.likes + m.comments + m.shares,
+          (s, m) =>
+            s +
+            finiteOr(m.likes) +
+            finiteOr(m.comments) +
+            finiteOr(m.shares),
           0
         ) / media.length
       : 0;
-  const expectedEng = reach * 0.03;
-  const ghostFollowerEstimate = Math.min(
+  const expectedEngPerPost =
+    reach < 100_000
+      ? reach * 0.03
+      : reach < 1_000_000
+        ? reach * 0.008
+        : reach * 0.002;
+
+  const ghostRaw = Math.min(
     0.85,
-    Math.max(
-      0,
-      1 - avgEngPerPost / Math.max(expectedEng, 1)
-    ) * 0.9
+    Math.max(0, 1 - avgEngPerPost / Math.max(expectedEngPerPost, 1)) * 0.9
   );
+  const scale = authenticityScaleFactor(followers);
+  const ghostFollowerEstimate = ghostRaw * scale;
 
   const recent = media.filter((m) => daysAgo(m.timestamp) <= 30);
   const older = media.filter(
     (m) => daysAgo(m.timestamp) > 30 && daysAgo(m.timestamp) <= 90
   );
   const recentEng =
-    recent.reduce((s, m) => s + m.likes, 0) / Math.max(recent.length, 1);
+    recent.reduce((s, m) => s + finiteOr(m.likes), 0) /
+    Math.max(recent.length, 1);
   const olderEng =
-    older.reduce((s, m) => s + m.likes, 0) / Math.max(older.length, 1);
+    older.reduce((s, m) => s + finiteOr(m.likes), 0) /
+    Math.max(older.length, 1);
   const followerGrowthSpike30d =
     olderEng > 0
       ? Math.min(0.8, Math.max(0, (recentEng - olderEng) / olderEng))
@@ -111,16 +128,16 @@ export function inferSignals(
   );
 
   return {
-    followerGrowthSpike30d,
-    commentToLikeRatio,
-    saveToLikeRatio,
-    shareToLikeRatio,
-    engagementVariance: engVariance,
-    followingFollowerRatio,
-    ghostFollowerEstimate,
-    podActivityScore,
-    botCommentPercent,
-    duplicateCommentRate: dupRate,
+    followerGrowthSpike30d: clampFinite(followerGrowthSpike30d, 0, 1),
+    commentToLikeRatio: clampFinite(commentToLikeRatio, 0, 1),
+    saveToLikeRatio: clampFinite(saveToLikeRatio, 0, 1),
+    shareToLikeRatio: clampFinite(shareToLikeRatio, 0, 1),
+    engagementVariance: clampFinite(engVariance, 0, 1),
+    followingFollowerRatio: clampFinite(followingFollowerRatio, 0, 1),
+    ghostFollowerEstimate: clampFinite(ghostFollowerEstimate, 0, 1),
+    podActivityScore: clampFinite(podActivityScore, 0, 1),
+    botCommentPercent: clampFinite(botCommentPercent, 0, 1),
+    duplicateCommentRate: clampFinite(dupRate, 0, 1),
   };
 }
 

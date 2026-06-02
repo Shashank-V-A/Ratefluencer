@@ -1,5 +1,6 @@
 import type { InfluencerProfile } from "@/lib/types";
 import { extractFeatures } from "./features";
+import { clampFinite, scorePercent } from "./safe-number";
 
 export function computeGrowthPotential(profile: InfluencerProfile): {
   score: number;
@@ -21,11 +22,15 @@ export function computeGrowthPotential(profile: InfluencerProfile): {
     (1 - s.engagementVariance) * 0.1;
 
   const microMultiplier =
-    m.followers < 50_000 ? 1.08 : m.followers < 120_000 ? 1 : 0.92;
+    m.followers < 50_000
+      ? 1.08
+      : m.followers < 120_000
+        ? 1
+        : m.followers >= 500_000
+          ? 0.55
+          : 0.85;
 
-  const score = Math.round(
-    clamp(momentum * microMultiplier, 0, 1) * 100
-  );
+  const score = scorePercent(clampFinite(momentum * microMultiplier, 0, 1) * 100);
 
   const baseFollowerGrowth =
     (s.followerGrowthSpike30d * 0.6 + f.postingConsistency * 0.25) * 100;
@@ -56,10 +61,6 @@ export function computeGrowthPotential(profile: InfluencerProfile): {
   };
 }
 
-function clamp(n: number, min: number, max: number) {
-  return Math.min(max, Math.max(min, n));
-}
-
 function clampNum(n: number, min: number, max: number) {
-  return Math.min(max, Math.max(min, n));
+  return Math.min(max, Math.max(min, clampFinite(n, min, max)));
 }

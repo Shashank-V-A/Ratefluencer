@@ -1,4 +1,5 @@
 import type { InfluencerProfile } from "@/lib/types";
+import { clampFinite, finiteOr } from "./safe-number";
 
 export interface MLFeatures {
   engagementRate: number;
@@ -21,13 +22,16 @@ export function extractFeatures(profile: InfluencerProfile): MLFeatures {
   const s = profile.signals;
   const reach = Math.max(m.followers, 1);
 
-  const totalEngagements =
-    m.likes + m.comments + m.shares + m.saves || 1;
+  const likes = finiteOr(m.likes);
+  const comments = finiteOr(m.comments);
+  const shares = finiteOr(m.shares);
+  const saves = finiteOr(m.saves);
+  const totalEngagements = Math.max(likes + comments + shares + saves, 1);
   const engagementRate = totalEngagements / reach;
-  const shareRate = m.shares / totalEngagements;
-  const saveRate = m.saves / totalEngagements;
-  const commentRate = m.comments / totalEngagements;
-  const viewToFollowerRatio = m.avgReelViews / reach;
+  const shareRate = shares / totalEngagements;
+  const saveRate = saves / totalEngagements;
+  const commentRate = comments / totalEngagements;
+  const viewToFollowerRatio = finiteOr(m.avgReelViews) / reach;
 
   const expectedPosts = 12;
   const postingConsistency = Math.min(
@@ -55,7 +59,7 @@ export function extractFeatures(profile: InfluencerProfile): MLFeatures {
     m.followers >= 3_000 && m.followers <= 85_000 ? 1 : 0.72;
 
   const contentCategoryFit = profile.pastCampaigns > 0
-    ? profile.campaignSuccessRate
+    ? finiteOr(profile.campaignSuccessRate, 0.55)
     : 0.55 + saveRate * 0.3 + shareRate * 0.2;
 
   const demographicMatch =
@@ -71,24 +75,20 @@ export function extractFeatures(profile: InfluencerProfile): MLFeatures {
       Math.min(1, s.followingFollowerRatio * 2) * 0.15);
 
   return {
-    engagementRate: clamp(engagementRate, 0, 0.25),
-    shareRate: clamp(shareRate, 0, 1),
-    saveRate: clamp(saveRate, 0, 1),
-    commentRate: clamp(commentRate, 0, 1),
-    viewToFollowerRatio: clamp(viewToFollowerRatio, 0, 3),
-    postingConsistency,
-    growthRate30d,
-    audienceQuality: clamp(audienceQuality, 0, 1),
-    commentQuality: clamp(commentQuality, 0, 1),
-    contentCategoryFit: clamp(contentCategoryFit, 0, 1),
-    demographicMatch: clamp(demographicMatch / 100, 0, 1),
-    authenticityRaw: clamp(authenticityRaw, 0, 1),
-    microCreatorBonus,
+    engagementRate: clampFinite(engagementRate, 0, 0.25),
+    shareRate: clampFinite(shareRate, 0, 1),
+    saveRate: clampFinite(saveRate, 0, 1),
+    commentRate: clampFinite(commentRate, 0, 1),
+    viewToFollowerRatio: clampFinite(viewToFollowerRatio, 0, 3),
+    postingConsistency: clampFinite(postingConsistency, 0, 1),
+    growthRate30d: clampFinite(growthRate30d, -0.2, 1),
+    audienceQuality: clampFinite(audienceQuality, 0, 1),
+    commentQuality: clampFinite(commentQuality, 0, 1),
+    contentCategoryFit: clampFinite(contentCategoryFit, 0, 1),
+    demographicMatch: clampFinite(demographicMatch / 100, 0, 1),
+    authenticityRaw: clampFinite(authenticityRaw, 0, 1),
+    microCreatorBonus: finiteOr(microCreatorBonus, 0.72),
   };
-}
-
-function clamp(n: number, min: number, max: number) {
-  return Math.min(max, Math.max(min, n));
 }
 
 export function featuresToVector(f: MLFeatures): number[] {

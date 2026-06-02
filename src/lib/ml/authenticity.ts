@@ -1,4 +1,6 @@
 import type { AuthenticityFlags, InfluencerProfile } from "@/lib/types";
+import { authenticityScaleFactor } from "@/lib/ml/creator-tier";
+import { clampFinite, scorePercent } from "./safe-number";
 import { extractFeatures } from "./features";
 
 export function computeAuthenticityScore(profile: InfluencerProfile): {
@@ -7,11 +9,17 @@ export function computeAuthenticityScore(profile: InfluencerProfile): {
 } {
   const s = profile.signals;
   const f = extractFeatures(profile);
+  const scale = authenticityScaleFactor(profile.metrics.followers);
 
-  const purchasedRisk =
-    s.ghostFollowerEstimate * 0.5 +
-    (s.followingFollowerRatio > 0.08 ? 0.35 : 0) +
-    (s.followerGrowthSpike30d > 0.35 ? 0.25 : 0);
+  let purchasedRisk =
+    (s.ghostFollowerEstimate * 0.5 +
+      (s.followingFollowerRatio > 0.08 ? 0.35 : 0) +
+      (s.followerGrowthSpike30d > 0.35 ? 0.25 : 0)) *
+    scale;
+
+  if (profile.metrics.followers >= 500_000) {
+    purchasedRisk = Math.min(purchasedRisk, 0.42);
+  }
 
   const podRisk =
     s.podActivityScore * 0.7 + (s.duplicateCommentRate > 0.12 ? 0.25 : 0);
@@ -32,7 +40,7 @@ export function computeAuthenticityScore(profile: InfluencerProfile): {
     (1 - botRisk) * 0.1 +
     (1 - spikeRisk) * 0.05;
 
-  const score = Math.round(clamp(raw, 0, 1) * 100);
+  const score = scorePercent(clampFinite(raw, 0, 1) * 100);
 
   return {
     score,
@@ -51,6 +59,3 @@ function riskLevel(v: number): "low" | "medium" | "high" {
   return "high";
 }
 
-function clamp(n: number, min: number, max: number) {
-  return Math.min(max, Math.max(min, n));
-}

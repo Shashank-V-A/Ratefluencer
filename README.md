@@ -2,7 +2,7 @@
 
 AI-powered **creator intelligence** for **micro UGC creators** on **YouTube, X, and Instagram**.
 
-All creator profiles come from **live platform APIs** — no demo dataset. **TikTok is not supported** (not in scope for this app).
+All creator profiles come from **live platform APIs** — no demo dataset. 
 
 ## Features
 
@@ -30,22 +30,6 @@ Copy `.env.example` → `.env.local`:
 
 **You do not need OpenAI.** Brand match uses built-in semantic embeddings by default. Add `OPENAI_API_KEY` only if you want cloud embeddings (often slightly better brand brief matching).
 
-### Supabase setup (optional)
-
-1. In Supabase dashboard → **SQL Editor** → **New query**
-2. Open **`supabase/setup.sql`** in your project and **copy the entire file contents**
-3. Paste into the editor and click **Run** (do not paste the file path)
-
-Or use the migration file: `supabase/migrations/20250601000000_rankmint_schema.sql` — same SQL, copy contents only.
-
-Then add to `.env.local`:
-
-```env
-NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
-```
-
-(Service role key: Project Settings → API → `service_role` — never expose in frontend code.)
 
 ## Commands
 

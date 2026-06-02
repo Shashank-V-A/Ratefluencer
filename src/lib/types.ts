@@ -103,5 +103,8 @@ export interface AnalysisResult {
   featureImportance: { feature: string; impact: number }[];
   modelVersion: string;
   embeddingProvider?: "openai" | "fallback";
+  creatorTier?: "micro" | "mid" | "mega";
+  scoringNotes?: string[];
+  rawRankMint?: number;
   meta?: AnalysisMeta;
 }

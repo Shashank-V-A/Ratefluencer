@@ -1,23 +1,23 @@
 /**
  * Logistic-regression coefficients exported from ml/train_model.py
- * (synthetic micro-UGC campaign labels, documented in ml/train_model.py).
- * Regenerate: python ml/train_model.py && npm run ml:sync
+ * (ml/campaign_labels.csv or synthetic fallback — see ml/README.md).
+ * Regenerate: npm run ml:train
  */
 export const RANK_MINT_COEFFICIENTS = {
-  intercept: -0.639219,
-  engagementRate: 1.742322,
-  shareRate: -0.047380,
-  saveRate: 3.625560,
-  commentRate: 0.011065,
-  viewToFollowerRatio: 0.035430,
-  postingConsistency: -0.190660,
-  growthRate30d: -0.564124,
-  audienceQuality: 0.413361,
-  commentQuality: 0.016623,
-  contentCategoryFit: -0.574325,
-  demographicMatch: 0.553878,
-  authenticityRaw: 4.359854,
-  microCreatorBonus: 1.177571,
+  intercept: -12.016299,
+  engagementRate: 0.263633,
+  shareRate: 0.430643,
+  saveRate: 1.494501,
+  commentRate: 0.279591,
+  viewToFollowerRatio: 2.301879,
+  postingConsistency: 3.813030,
+  growthRate30d: 2.852436,
+  audienceQuality: 2.145991,
+  commentQuality: 1.281919,
+  contentCategoryFit: 2.315536,
+  demographicMatch: -0.016244,
+  authenticityRaw: 1.218834,
+  microCreatorBonus: 2.717677,
 } as const;
 
 export const FEATURE_LABELS: Record<keyof typeof RANK_MINT_COEFFICIENTS, string> = {
@@ -37,4 +37,4 @@ export const FEATURE_LABELS: Record<keyof typeof RANK_MINT_COEFFICIENTS, string>
   microCreatorBonus: "Micro-UGC Fit",
 };
 
-export const MODEL_VERSION = "rm-trained-v1.0-synthetic";
+export const MODEL_VERSION = "rm-trained-v1.1-campaign-labels";

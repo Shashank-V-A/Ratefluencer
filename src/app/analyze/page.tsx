@@ -101,7 +101,7 @@ export default function AnalyzePage() {
           <div className="relative flex-1">
             <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              className="h-10 border-white/10 bg-white/[0.03] pl-10"
+              className="h-10 border-primary/15 bg-primary/[0.04] pl-10 focus-visible:border-primary/35"
               placeholder={`@${EXAMPLES[platform] ?? "username"}`}
               value={handle}
               onChange={(e) => setHandle(e.target.value)}
@@ -187,7 +187,7 @@ export default function AnalyzePage() {
                 </Link>
               </div>
             </div>
-            <div className="mt-8 border-t border-white/[0.06] pt-8">
+            <div className="mt-8 border-t border-primary/12 pt-8">
               <ScoreBreakdownPanel scores={result.scores} />
             </div>
           </GlassPanel>

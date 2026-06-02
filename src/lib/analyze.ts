@@ -4,6 +4,27 @@ import { analyzeInfluencer } from "@/lib/ml/engine";
 import { fetchCreatorFromPlatform } from "@/lib/platforms";
 import { buildProfileFromFetched } from "@/lib/profile/build";
 import { MODEL_VERSION } from "@/lib/ml/coefficients";
+import { scorePercent } from "@/lib/ml/safe-number";
+
+function sanitizeScores(result: AnalysisResult): AnalysisResult {
+  const s = result.scores;
+  return {
+    ...result,
+    scores: {
+      authenticity: scorePercent(s.authenticity),
+      growthPotential: scorePercent(s.growthPotential),
+      brandMatch: scorePercent(s.brandMatch),
+      rankMint: scorePercent(s.rankMint),
+      campaignSuccessProbability: scorePercent(s.campaignSuccessProbability),
+    },
+    rawRankMint:
+      result.rawRankMint != null ? scorePercent(result.rawRankMint) : undefined,
+    brandRecommendations: result.brandRecommendations.map((r) => ({
+      ...r,
+      score: scorePercent(r.score),
+    })),
+  };
+}
 
 function withMeta(
   result: AnalysisResult,
@@ -28,7 +49,7 @@ export async function analyzeLiveCreator(
   if (!options.skipCache) {
     const cached = await getCachedAnalysis(platform, normalized);
     if (cached) {
-      return withMeta(cached, {
+      return withMeta(sanitizeScores(cached), {
         ...cached.meta!,
         cached: true,
         modelVersion: MODEL_VERSION,
@@ -53,33 +74,16 @@ export async function analyzeLiveCreator(
     );
   }
 
-  const scoringNotes = [
-    "RankMint™ uses trained logistic weights on live-extracted features (see /methodology).",
-    "Authenticity flags are heuristic signals from public metrics, not third-party fraud APIs.",
-    profile.demographics.source === "unavailable"
-      ? "Audience demographics are not shown — platforms require OAuth for real breakdowns."
-      : "Audience demographics sourced from platform API.",
-  ];
-
-  if (result.embeddingProvider === "fallback") {
-    scoringNotes.push(
-      "Brand match uses built-in semantic embeddings (no OpenAI or other AI API key required)."
-    );
-  } else {
-    scoringNotes.push("Brand match used optional cloud embeddings (OPENAI_API_KEY).");
-  }
-
   const final = withMeta(result, {
-    source: "live",
-    fetchedAt: new Date().toISOString(),
-    profileUrl: raw.profileUrl,
-    avatarUrl: raw.avatarUrl,
-    warnings: warnings.length ? warnings : undefined,
-    cached: false,
-    modelVersion: MODEL_VERSION,
-    embeddingProvider: result.embeddingProvider,
-    scoringNotes,
-  });
+      source: "live",
+      fetchedAt: new Date().toISOString(),
+      profileUrl: raw.profileUrl,
+      avatarUrl: raw.avatarUrl,
+      warnings: warnings.length ? warnings : undefined,
+      cached: false,
+      modelVersion: MODEL_VERSION,
+      embeddingProvider: result.embeddingProvider,
+    });
 
   await setCachedAnalysis(platform, normalized, final);
   return final;
