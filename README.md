@@ -1,6 +1,6 @@
 # RankMint
 
-AI-powered **creator intelligence** for **micro UGC creators** on **YouTube, X, and Instagram**.
+AI-powered **creator intelligence** for **micro UGC creators** on **YouTube, X, and LinkedIn**.
 
 All creator profiles come from **live platform APIs** — no demo dataset. 
 
@@ -23,7 +23,8 @@ Copy `.env.example` → `.env.local`:
 |----------|-----------|---------|
 | `YOUTUBE_API_KEY` | For YouTube | YouTube Data API |
 | `X_API_BEARER_TOKEN` | For X | X API v2 |
-| `META_GRAPH_*` | For Instagram only | Instagram Graph API |
+| `LINKEDIN_OAUTH_*` | For LinkedIn | Sign in with LinkedIn (analyze your own profile) |
+| `LINKEDIN_ACCESS_TOKEN` | Optional | Static token if you have partner API access |
 | `OPENAI_API_KEY` | **No** | Optional upgrade for brand-match embeddings |
 | `NEXT_PUBLIC_SUPABASE_URL` | **No** | Cache, brands, saved reports |
 | `SUPABASE_SERVICE_ROLE_KEY` | **No** | Server-side DB |

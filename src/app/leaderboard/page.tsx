@@ -32,7 +32,7 @@ function parseCsv(text: string): string[] {
 export default function LeaderboardPage() {
   const [platform, setPlatform] = useState<Platform>("youtube");
   const [objective, setObjective] = useState<CompareObjective>("roi");
-  const [input, setInput] = useState("mkbhd\nnaval");
+  const [input, setInput] = useState("");
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -67,27 +67,31 @@ export default function LeaderboardPage() {
         Batch leaderboard
       </PageTitle>
       <GlassPanel className="space-y-4">
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2 md:items-end">
           <div className="space-y-2">
             <p className="text-xs text-muted-foreground">Platform</p>
             <PlatformSelector value={platform} onChange={setPlatform} disabled={loading} />
           </div>
-          <label className="space-y-2">
+          <div className="space-y-2">
             <p className="text-xs text-muted-foreground">Objective</p>
-            <select
-              value={objective}
-              onChange={(e) => setObjective(e.target.value as CompareObjective)}
-              className="h-10 w-full rounded-lg border border-border bg-white px-3 text-sm"
-            >
-              <option value="roi">ROI</option>
-              <option value="brand_safety">Brand safety</option>
-              <option value="growth">Growth</option>
-            </select>
-          </label>
-          <div className="flex items-end">
-            <Button disabled={loading || handles.length === 0} onClick={run} className="w-full">
-              {loading ? "Scoring..." : `Run batch (${Math.min(handles.length, 25)})`}
-            </Button>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+              <select
+                value={objective}
+                onChange={(e) => setObjective(e.target.value as CompareObjective)}
+                className="h-10 min-w-0 flex-1 rounded-lg border border-border bg-white px-3 text-sm"
+              >
+                <option value="roi">ROI</option>
+                <option value="brand_safety">Brand safety</option>
+                <option value="growth">Growth</option>
+              </select>
+              <Button
+                disabled={loading || handles.length === 0}
+                onClick={run}
+                className="h-10 shrink-0 px-5 sm:w-auto"
+              >
+                {loading ? "Scoring..." : `Run batch (${Math.min(handles.length, 25)})`}
+              </Button>
+            </div>
           </div>
         </div>
 

@@ -9,7 +9,7 @@ export function ApiStatusBanner() {
   const [status, setStatus] = useState<{
     youtube?: PlatformStatus;
     x?: PlatformStatus;
-    instagram?: PlatformStatus;
+    linkedin?: PlatformStatus;
   } | null>(null);
   const [xVerify, setXVerify] = useState<{
     ok: boolean;
@@ -41,7 +41,7 @@ export function ApiStatusBanner() {
         <div className="flex items-center gap-2">
           <CheckCircle2 className="h-4 w-4 shrink-0 text-orange-600" />
           <span>
-            YouTube + X API keys verified. Instagram is optional.
+            YouTube + X API keys verified. LinkedIn is optional.
           </span>
         </div>
         <p className="pl-6 text-xs text-orange-700/80">

@@ -1,5 +1,5 @@
 import type { Platform } from "@/lib/types";
-import { fetchInstagramCreator } from "./instagram";
+import { fetchLinkedInCreator } from "./linkedin";
 import type { FetchedCreatorRaw } from "./types";
 import { PlatformApiError } from "./types";
 import { fetchXCreator } from "./x";
@@ -13,8 +13,8 @@ export async function fetchCreatorFromPlatform(
   handle: string
 ): Promise<FetchedCreatorRaw> {
   switch (platform) {
-    case "instagram":
-      return fetchInstagramCreator(handle);
+    case "linkedin":
+      return fetchLinkedInCreator(handle);
     case "youtube":
       return fetchYouTubeCreator(handle);
     case "x":

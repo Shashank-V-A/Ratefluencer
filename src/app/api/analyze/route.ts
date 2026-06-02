@@ -5,7 +5,7 @@ import { getSessionId } from "@/lib/session";
 import type { Platform } from "@/lib/types";
 import { NextResponse } from "next/server";
 
-const PLATFORMS: Platform[] = ["instagram", "youtube", "x"];
+const PLATFORMS: Platform[] = ["linkedin", "youtube", "x"];
 
 function parsePlatform(value: unknown): Platform | null {
   if (typeof value !== "string") return null;
@@ -43,7 +43,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         error: "Platform is required",
-        hint: "Send { platform: 'instagram' | 'youtube' | 'x', handle: 'username' }",
+        hint: "Send { platform: 'linkedin' | 'youtube' | 'x', handle: 'username' }",
         platforms: getAllPlatformStatus(),
       },
       { status: 400 }

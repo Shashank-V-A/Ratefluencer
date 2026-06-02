@@ -12,7 +12,7 @@ export async function GET() {
   return NextResponse.json({
     platforms,
     coreReady: core.youtube.configured && core.x.configured,
-    instagramOptional: !platforms.instagram.configured,
+    linkedinOptional: !platforms.linkedin.configured,
     openai: { ...getOpenAIStatus(), note: "Optional — brand match works without it" },
     supabase: getSupabaseStatus(),
     docs: "docs/API_KEYS.md",

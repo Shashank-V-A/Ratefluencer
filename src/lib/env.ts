@@ -13,13 +13,21 @@ export function getYouTubeStatus(): PlatformEnvStatus {
   return { configured: missing.length === 0, missing };
 }
 
-export function getInstagramStatus(): PlatformEnvStatus {
+export function getLinkedInStatus(): PlatformEnvStatus {
   const missing: string[] = [];
-  if (!process.env.META_GRAPH_ACCESS_TOKEN?.trim())
-    missing.push("META_GRAPH_ACCESS_TOKEN");
-  if (!process.env.INSTAGRAM_BUSINESS_ACCOUNT_ID?.trim())
-    missing.push("INSTAGRAM_BUSINESS_ACCOUNT_ID");
+  const oauthReady =
+    Boolean(process.env.LINKEDIN_OAUTH_CLIENT_ID?.trim()) &&
+    Boolean(process.env.LINKEDIN_OAUTH_CLIENT_SECRET?.trim());
+  if (!getLinkedInAccessToken() && !oauthReady) {
+    missing.push(
+      "LINKEDIN_OAUTH_CLIENT_ID + LINKEDIN_OAUTH_CLIENT_SECRET (or LINKEDIN_ACCESS_TOKEN)"
+    );
+  }
   return { configured: missing.length === 0, missing };
+}
+
+export function getLinkedInAccessToken(): string | undefined {
+  return normalizeEnvSecret(process.env.LINKEDIN_ACCESS_TOKEN);
 }
 
 export function getXStatus(): PlatformEnvStatus {
@@ -34,7 +42,7 @@ export function getXStatus(): PlatformEnvStatus {
 export function getAllPlatformStatus() {
   return {
     youtube: getYouTubeStatus(),
-    instagram: getInstagramStatus(),
+    linkedin: getLinkedInStatus(),
     x: getXStatus(),
   };
 }
@@ -68,7 +76,7 @@ export function getXBearerToken(): string | undefined {
   );
 }
 
-/** Platforms you can use without Instagram */
+/** YouTube + X — always-on creator platforms */
 export function getCorePlatformStatus() {
   return {
     youtube: getYouTubeStatus(),
@@ -76,8 +84,8 @@ export function getCorePlatformStatus() {
   };
 }
 
-export function isInstagramOptional() {
-  return !getInstagramStatus().configured;
+export function isLinkedInOptional() {
+  return !getLinkedInStatus().configured;
 }
 
 export function getOpenAIStatus(): PlatformEnvStatus & { optional: true } {

@@ -47,7 +47,7 @@ describe("inferAudienceDemographics", () => {
     const d = inferAudienceDemographics(
       {
         ...baseRaw,
-        platform: "instagram",
+        platform: "linkedin",
         bio: "makeup tutorial skincare grwm beauty haul",
         media: [
           {

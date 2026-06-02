@@ -45,7 +45,7 @@ export function DemographicsPanel({
       <div className="rounded-2xl border border-border/80 bg-card/40 p-6">
         <h2 className="font-display text-lg font-semibold">Audience demographics</h2>
         <p className="mt-3 text-sm text-muted-foreground">
-          Connect Instagram Insights or YouTube Analytics OAuth for verified audience
+          Connect YouTube Analytics OAuth for verified audience demographics
           breakdowns. Public analysis does not include platform-held age/country data.
         </p>
       </div>
