@@ -9,6 +9,7 @@ const links = [
   { href: "/compare", label: "Compare" },
   { href: "/brands", label: "Brands" },
   { href: "/saved", label: "Shortlist" },
+  { href: "/leaderboard", label: "Leaderboard" },
   { href: "/methodology", label: "Methodology" },
 ];
 

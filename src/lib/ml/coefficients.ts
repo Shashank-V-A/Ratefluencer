@@ -4,20 +4,20 @@
  * Regenerate: npm run ml:train
  */
 export const RANK_MINT_COEFFICIENTS = {
-  intercept: -12.016299,
-  engagementRate: 0.263633,
-  shareRate: 0.430643,
-  saveRate: 1.494501,
-  commentRate: 0.279591,
-  viewToFollowerRatio: 2.301879,
-  postingConsistency: 3.813030,
-  growthRate30d: 2.852436,
-  audienceQuality: 2.145991,
-  commentQuality: 1.281919,
-  contentCategoryFit: 2.315536,
-  demographicMatch: -0.016244,
-  authenticityRaw: 1.218834,
-  microCreatorBonus: 2.717677,
+  intercept: -12.551258,
+  engagementRate: 0.247061,
+  shareRate: 0.568207,
+  saveRate: 1.445581,
+  commentRate: 0.450339,
+  viewToFollowerRatio: 2.449111,
+  postingConsistency: 3.867437,
+  growthRate30d: 3.434437,
+  audienceQuality: 2.259891,
+  commentQuality: 1.393793,
+  contentCategoryFit: 2.635375,
+  demographicMatch: 0.602149,
+  authenticityRaw: 1.208636,
+  microCreatorBonus: 1.767976,
 } as const;
 
 export const FEATURE_LABELS: Record<keyof typeof RANK_MINT_COEFFICIENTS, string> = {

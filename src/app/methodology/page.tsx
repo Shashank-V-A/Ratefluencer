@@ -11,6 +11,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { PageShell, PageTitle } from "@/components/ui/page-shell";
+import { getModelMetrics } from "@/lib/ml/model-metrics";
 
 export const metadata = {
   title: "How RankMint scores creators — Methodology",
@@ -103,6 +104,7 @@ function SourceBadge({ label }: { label: string }) {
 }
 
 export default function MethodologyPage() {
+  const metrics = getModelMetrics();
   return (
     <PageShell wide className="pb-20">
       <PageTitle subtitle="Live platform data + ML scores. Every number on a report maps to one of the sections below.">
@@ -157,6 +159,43 @@ export default function MethodologyPage() {
           </ul>
         </div>
       </div>
+      {metrics && (
+        <div className="glass-panel mb-10 rounded-2xl p-6">
+          <p className="text-xs font-semibold uppercase tracking-widest text-primary/80">
+            Model credibility
+          </p>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+            <div>
+              <p className="text-xs text-muted-foreground">Dataset</p>
+              <p className="font-display text-sm">{metrics.dataset ?? "campaign_labels.csv"}</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Rows</p>
+              <p className="font-display text-sm">{metrics.rows ?? 0}</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Accuracy</p>
+              <p className="font-display text-sm">
+                {typeof metrics.testAccuracy === "number"
+                  ? `${(metrics.testAccuracy * 100).toFixed(1)}%`
+                  : "—"}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">AUC</p>
+              <p className="font-display text-sm">
+                {typeof metrics.auc === "number" ? metrics.auc.toFixed(3) : "—"}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">F1</p>
+              <p className="font-display text-sm">
+                {typeof metrics.f1 === "number" ? metrics.f1.toFixed(3) : "—"}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-primary/80">
         Five scoring engines

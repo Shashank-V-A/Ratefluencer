@@ -12,13 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { GlassPanel, PageShell, PageTitle } from "@/components/ui/page-shell";
 import { Loader2, Search } from "lucide-react";
-import Image from "next/image";
-
-const EXAMPLES: Partial<Record<Platform, string>> = {
-  youtube: "mkbhd",
-  x: "naval",
-  instagram: "nike",
-};
+import { ProfileAvatar } from "@/components/ui/profile-avatar";
 
 type PlatformStatus = Record<string, { configured: boolean }>;
 
@@ -29,12 +23,50 @@ export default function AnalyzePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<AnalysisResult | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
+  const [forceRefresh, setForceRefresh] = useState(false);
+  const [brandWeights, setBrandWeights] = useState({
+    nicheFit: 50,
+    geographyFit: 15,
+    engagementQuality: 35,
+  });
+  const [youtubeOAuth, setYoutubeOAuth] = useState<{
+    configured: boolean;
+    connected: boolean;
+  }>({ configured: false, connected: false });
 
   useEffect(() => {
     fetch("/api/platforms/status")
       .then((r) => r.json())
       .then((d) => setApiStatus(d.platforms))
       .catch(() => setApiStatus(null));
+    fetch("/api/oauth/youtube/status")
+      .then((r) => r.json())
+      .then((d) =>
+        setYoutubeOAuth({
+          configured: Boolean(d.configured),
+          connected: Boolean(d.connected),
+        })
+      )
+      .catch(() =>
+        setYoutubeOAuth({
+          configured: false,
+          connected: false,
+        })
+      );
+  }, []);
+
+  useEffect(() => {
+    const status = new URLSearchParams(window.location.search).get(
+      "youtube_oauth"
+    );
+    if (!status) return;
+    if (status === "connected") {
+      setToast("YouTube Analytics connected. Audience demographics now use API insights.");
+      setYoutubeOAuth((prev) => ({ ...prev, connected: true }));
+    } else {
+      setToast(`YouTube OAuth status: ${status.replaceAll("_", " ")}`);
+    }
   }, []);
 
   const platformReady =
@@ -52,7 +84,16 @@ export default function AnalyzePage() {
       const res = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ handle: h, platform }),
+        body: JSON.stringify({
+          handle: h,
+          platform,
+          skipCache: forceRefresh,
+          brandWeights: {
+            nicheFit: brandWeights.nicheFit,
+            geographyFit: brandWeights.geographyFit,
+            engagementQuality: brandWeights.engagementQuality,
+          },
+        }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -64,6 +105,11 @@ export default function AnalyzePage() {
       }
       setResult(data as AnalysisResult);
       setHandle(h);
+      setToast(
+        forceRefresh
+          ? "Fetched fresh live data (cache bypassed)."
+          : "Analysis updated."
+      );
     } catch {
       setError("Network error. Please try again.");
     } finally {
@@ -71,15 +117,19 @@ export default function AnalyzePage() {
     }
   }
 
+  useEffect(() => {
+    if (!toast) return;
+    const timer = setTimeout(() => setToast(null), 3000);
+    return () => clearTimeout(timer);
+  }, [toast]);
+
   const reportHref = result
     ? `/report/${encodeLiveReportId(result.profile.platform, result.profile.handle)}`
     : "#";
 
   return (
     <PageShell narrow>
-      <PageTitle
-        subtitle="Live lookup via YouTube Data API, X API v2, or Instagram Graph. Scores refresh from real metrics every time."
-      >
+      <PageTitle>
         Analyze a creator
       </PageTitle>
 
@@ -103,7 +153,7 @@ export default function AnalyzePage() {
             <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               className="h-10 border-border bg-white pl-10 shadow-sm"
-              placeholder={`@${EXAMPLES[platform] ?? "username"}`}
+              placeholder="@username"
               value={handle}
               onChange={(e) => setHandle(e.target.value)}
             />
@@ -121,16 +171,46 @@ export default function AnalyzePage() {
           </Button>
         </form>
 
-        {EXAMPLES[platform] && (
-          <button
-            type="button"
-            suppressHydrationWarning
-            onClick={() => runAnalysis(EXAMPLES[platform])}
-            className="text-xs text-muted-foreground transition-colors hover:text-primary"
-          >
-            Try @{EXAMPLES[platform]}
-          </button>
-        )}
+        <div className="grid gap-4 rounded-xl border border-border bg-muted/20 p-4">
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-medium">Brand match priorities</p>
+            <label className="flex items-center gap-2 text-xs text-muted-foreground">
+              <input
+                type="checkbox"
+                checked={forceRefresh}
+                onChange={(e) => setForceRefresh(e.target.checked)}
+              />
+              Force refresh live data
+            </label>
+          </div>
+          {(
+            [
+              ["nicheFit", "Niche fit"],
+              ["geographyFit", "Geography fit"],
+              ["engagementQuality", "Engagement quality"],
+            ] as const
+          ).map(([key, label]) => (
+            <label key={key} className="space-y-1 text-xs text-muted-foreground">
+              <div className="flex justify-between">
+                <span>{label}</span>
+                <span>{brandWeights[key]}%</span>
+              </div>
+              <input
+                type="range"
+                min={0}
+                max={100}
+                value={brandWeights[key]}
+                onChange={(e) =>
+                  setBrandWeights((prev) => ({
+                    ...prev,
+                    [key]: Number(e.target.value),
+                  }))
+                }
+                className="w-full accent-primary"
+              />
+            </label>
+          ))}
+        </div>
       </GlassPanel>
 
       <div className="mt-6 space-y-4">
@@ -150,9 +230,32 @@ export default function AnalyzePage() {
         )}
 
         {error && (
-          <p className="rounded-xl border border-destructive/25 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-            {error}
+          <p className="rounded-xl border border-destructive/25 bg-destructive/10 px-4 py-3 text-sm text-destructive space-x-2">
+            <span>{error}</span>
+            <button
+              type="button"
+              onClick={() => runAnalysis()}
+              className="font-medium underline"
+            >
+              Retry
+            </button>
           </p>
+        )}
+        {toast && (
+          <p className="rounded-xl border border-border bg-card px-4 py-3 text-sm text-foreground shadow-sm">
+            {toast}
+          </p>
+        )}
+        {loading && (
+          <GlassPanel className="mt-4 animate-pulse">
+            <div className="h-5 w-36 rounded bg-muted" />
+            <div className="mt-4 h-4 w-52 rounded bg-muted" />
+            <div className="mt-6 space-y-3">
+              <div className="h-2 rounded bg-muted" />
+              <div className="h-2 rounded bg-muted" />
+              <div className="h-2 rounded bg-muted" />
+            </div>
+          </GlassPanel>
         )}
 
         {result?.meta?.warnings?.map((w) => (
@@ -173,26 +276,13 @@ export default function AnalyzePage() {
                 label="RankMint™"
               />
               <div className="flex flex-1 flex-col items-center gap-4 sm:flex-row sm:items-start">
-                {result.meta?.avatarUrl ? (
-                  <Image
-                    src={result.meta.avatarUrl}
-                    alt=""
-                    width={72}
-                    height={72}
-                    className="h-[72px] w-[72px] shrink-0 rounded-2xl border border-border object-cover shadow-sm"
-                    unoptimized
-                  />
-                ) : (
-                  <div
-                    className={`flex h-[72px] w-[72px] shrink-0 items-center justify-center rounded-2xl border border-border bg-gradient-to-br text-lg font-semibold shadow-sm ${result.profile.avatarGradient}`}
-                  >
-                    {result.profile.displayName
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")
-                      .slice(0, 2)}
-                  </div>
-                )}
+                <ProfileAvatar
+                  name={result.profile.displayName}
+                  avatarUrl={result.meta?.avatarUrl}
+                  avatarGradient={result.profile.avatarGradient}
+                  size={72}
+                  className="shrink-0"
+                />
                 <div className="min-w-0 flex-1 text-center sm:text-left">
                   <h2 className="font-display text-2xl tracking-tight">
                     {result.profile.displayName}
@@ -211,7 +301,11 @@ export default function AnalyzePage() {
               </div>
             </div>
             <div className="mt-8 border-t border-border pt-8">
-              <ScoreBreakdownPanel scores={result.scores} />
+              <ScoreBreakdownPanel
+                scores={result.scores}
+                explainability={result.explainability}
+                freshnessMinutes={result.meta?.freshnessMinutes}
+              />
             </div>
           </GlassPanel>
         )}

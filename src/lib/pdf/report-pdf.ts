@@ -615,6 +615,41 @@ function drawAuthenticityFlags(ctx: Ctx, analysis: AnalysisResult) {
   ctx.y = yTop - boxH - 20;
 }
 
+function drawScoreTransparency(ctx: Ctx, analysis: AnalysisResult) {
+  const exp = analysis.explainability;
+  if (!exp) return;
+  drawSectionTitle(
+    ctx,
+    "Score transparency",
+    `Confidence ${analysis.meta?.confidence ?? exp.rankMint.confidence}% · Sample size ${analysis.meta?.sampleSize ?? exp.rankMint.sampleSize}`
+  );
+  const rows = [
+    ["RankMint", exp.rankMint.summary],
+    ["Authenticity", exp.authenticity.summary],
+    ["Growth", exp.growthPotential.summary],
+    ["Brand match", exp.brandMatch.summary],
+  ] as const;
+  for (const [label, summary] of rows) {
+    ensureSpace(ctx, 30);
+    drawCard(ctx.page, MARGIN, ctx.y, ctx.contentWidth, 24, SURFACE_MUTED);
+    ctx.page.drawText(label, {
+      x: MARGIN + 10,
+      y: ctx.y - 15,
+      size: 8,
+      font: ctx.bold,
+      color: TEXT,
+    });
+    ctx.page.drawText(summary.slice(0, 85), {
+      x: MARGIN + 96,
+      y: ctx.y - 15,
+      size: 8,
+      font: ctx.font,
+      color: MUTED,
+    });
+    ctx.y -= 30;
+  }
+}
+
 async function drawHeader(
   ctx: Ctx,
   analysis: AnalysisResult,
@@ -789,6 +824,7 @@ export async function buildReportPdf(
     }))
   );
 
+  drawScoreTransparency(ctx, analysis);
   drawAuthenticityFlags(ctx, analysis);
   drawGrowthForecast(ctx, analysis);
   drawDemographics(ctx, analysis);

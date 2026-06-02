@@ -19,6 +19,18 @@ export async function POST(request: Request) {
     typeof body.handle === "string" ? body.handle.trim().replace(/^@/, "") : "";
   const platform = parsePlatform(body.platform);
   const skipCache = body.skipCache === true;
+  const brandWeights =
+    body.brandWeights &&
+    typeof body.brandWeights === "object" &&
+    typeof body.brandWeights.nicheFit === "number" &&
+    typeof body.brandWeights.geographyFit === "number" &&
+    typeof body.brandWeights.engagementQuality === "number"
+      ? {
+          nicheFit: body.brandWeights.nicheFit,
+          geographyFit: body.brandWeights.geographyFit,
+          engagementQuality: body.brandWeights.engagementQuality,
+        }
+      : undefined;
 
   if (!handle) {
     return NextResponse.json(
@@ -43,6 +55,7 @@ export async function POST(request: Request) {
     const result = await analyzeLiveCreator(platform, handle, {
       sessionId,
       skipCache,
+      brandWeights,
     });
     return NextResponse.json(result);
   } catch (e) {

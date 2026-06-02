@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { formatFollowers } from "@/lib/format";
 import type { AnalysisResult } from "@/lib/types";
 import { ArrowLeft, ExternalLink } from "lucide-react";
-import Image from "next/image";
+import { ProfileAvatar } from "@/components/ui/profile-avatar";
 
 export function CreatorReportView({
   analysis,
@@ -60,26 +60,12 @@ export function CreatorReportView({
         <div className="mt-8 grid gap-10 lg:grid-cols-[1fr_280px]">
           <div>
             <div className="flex flex-wrap items-start gap-6">
-              {meta?.avatarUrl ? (
-                <Image
-                  src={meta.avatarUrl}
-                  alt=""
-                  width={64}
-                  height={64}
-                  className="h-16 w-16 rounded-2xl object-cover"
-                  unoptimized
-                />
-              ) : (
-                <div
-                  className={`flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br ${profile.avatarGradient} text-lg font-semibold`}
-                >
-                  {profile.displayName
-                    .split(" ")
-                    .map((n) => n[0])
-                    .join("")
-                    .slice(0, 2)}
-                </div>
-              )}
+              <ProfileAvatar
+                name={profile.displayName}
+                avatarUrl={meta?.avatarUrl}
+                avatarGradient={profile.avatarGradient}
+                size={64}
+              />
               <div>
                 <h1 className="font-display text-3xl font-semibold">
                   {profile.displayName}
@@ -106,6 +92,17 @@ export function CreatorReportView({
                 <p className="mt-4 max-w-xl text-sm leading-relaxed text-muted-foreground">
                   {profile.bio || "No bio available."}
                 </p>
+                {(meta?.confidence || meta?.sampleSize || meta?.freshnessMinutes != null) && (
+                  <p className="mt-3 text-xs text-muted-foreground">
+                    Confidence {meta?.confidence ?? "—"}% · Sample size {meta?.sampleSize ?? "—"} ·
+                    Freshness{" "}
+                    {typeof meta?.freshnessMinutes === "number"
+                      ? meta.freshnessMinutes <= 1
+                        ? "just now"
+                        : `${meta.freshnessMinutes} min`
+                      : "—"}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -137,7 +134,11 @@ export function CreatorReportView({
                   Score breakdown
                 </h2>
                 <div className="mt-6">
-                  <ScoreBreakdownPanel scores={scores} />
+                  <ScoreBreakdownPanel
+                    scores={scores}
+                    explainability={analysis.explainability}
+                    freshnessMinutes={meta?.freshnessMinutes}
+                  />
                 </div>
               </div>
               <AuthenticityPanel
@@ -145,6 +146,24 @@ export function CreatorReportView({
                 flags={analysis.authenticityFlags}
               />
             </div>
+            {analysis.explainability && (
+              <div className="mt-4 rounded-2xl border border-border/80 bg-card/40 p-6">
+                <h2 className="font-display text-lg font-semibold">
+                  Explainability highlights
+                </h2>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  {analysis.explainability.rankMint.summary}
+                </p>
+                <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-muted-foreground">
+                  {analysis.explainability.rankMint.positives.slice(0, 2).map((p) => (
+                    <li key={p}>+ {p}</li>
+                  ))}
+                  {analysis.explainability.rankMint.negatives.slice(0, 2).map((n) => (
+                    <li key={n}>- {n}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
             <div className="mt-6 rounded-2xl border border-border/80 bg-card/40 p-6">
               <h2 className="font-display text-lg font-semibold">
@@ -207,6 +226,26 @@ export function CreatorReportView({
                 <FeatureImportanceChart data={featureImportance} />
               </div>
             </div>
+            {analysis.modelMetrics && (
+              <div className="mt-6 rounded-2xl border border-border/80 bg-card/40 p-6">
+                <h2 className="font-display text-lg font-semibold">
+                  Model credibility
+                </h2>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Dataset {analysis.modelMetrics.dataset} · Rows {analysis.modelMetrics.rows} ·
+                  Accuracy {(analysis.modelMetrics.testAccuracy * 100).toFixed(1)}%
+                  {typeof analysis.modelMetrics.auc === "number" &&
+                    ` · AUC ${analysis.modelMetrics.auc.toFixed(3)}`}
+                  {typeof analysis.modelMetrics.f1 === "number" &&
+                    ` · F1 ${analysis.modelMetrics.f1.toFixed(3)}`}
+                </p>
+                {analysis.modelMetrics.lastTrainedAt && (
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Trained at {analysis.modelMetrics.lastTrainedAt}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
 
           <aside className="lg:sticky lg:top-24 lg:self-start">

@@ -11,6 +11,9 @@ export interface AnalysisMeta {
   embeddingProvider?: "openai" | "fallback";
   modelVersion?: string;
   scoringNotes?: string[];
+  sampleSize?: number;
+  confidence?: number;
+  freshnessMinutes?: number;
 }
 
 export interface AudienceDemographics {
@@ -106,5 +109,58 @@ export interface AnalysisResult {
   creatorTier?: "micro" | "mid" | "mega";
   scoringNotes?: string[];
   rawRankMint?: number;
+  explainability?: {
+    authenticity: {
+      summary: string;
+      positives: string[];
+      negatives: string[];
+      confidence: number;
+      sampleSize: number;
+    };
+    growthPotential: {
+      summary: string;
+      positives: string[];
+      negatives: string[];
+      confidence: number;
+      sampleSize: number;
+    };
+    brandMatch: {
+      summary: string;
+      positives: string[];
+      negatives: string[];
+      confidence: number;
+      sampleSize: number;
+    };
+    campaignSuccessProbability: {
+      summary: string;
+      positives: string[];
+      negatives: string[];
+      confidence: number;
+      sampleSize: number;
+    };
+    rankMint: {
+      summary: string;
+      positives: string[];
+      negatives: string[];
+      confidence: number;
+      sampleSize: number;
+    };
+  };
+  modelMetrics?: {
+    dataset: string;
+    rows: number;
+    testAccuracy: number;
+    auc?: number;
+    f1?: number;
+    lastTrainedAt?: string;
+  };
   meta?: AnalysisMeta;
 }
+
+export type CompareObjective = "brand_safety" | "growth" | "roi";
+
+export type BrandPriorityWeights = {
+  nicheFit: number;
+  geographyFit: number;
+  engagementQuality: number;
+};

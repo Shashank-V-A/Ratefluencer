@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { HeroSection } from "@/components/marketing/hero-section";
 import { FeaturesSection } from "@/components/marketing/features-section";
+import { GoogleSigninBanner } from "@/components/marketing/google-signin-banner";
 
 export default function HomePage() {
   return (
     <>
+      <GoogleSigninBanner />
       <HeroSection />
       <FeaturesSection />
 

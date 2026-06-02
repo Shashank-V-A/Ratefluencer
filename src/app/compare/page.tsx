@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import type { AnalysisResult, Platform } from "@/lib/types";
+import { useMemo, useState } from "react";
+import type { AnalysisResult, CompareObjective, Platform } from "@/lib/types";
 import { PlatformSelector } from "@/components/platform-selector";
 import { ScoreRing } from "@/components/score-ring";
 import { formatFollowers } from "@/lib/format";
@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { GlassPanel, PageShell, PageTitle } from "@/components/ui/page-shell";
 import { Loader2 } from "lucide-react";
 import { ApiStatusBanner } from "@/components/api-status-banner";
+import { ProfileAvatar } from "@/components/ui/profile-avatar";
 
 async function fetchAnalysis(
   platform: Platform,
@@ -39,6 +40,7 @@ export default function ComparePage() {
   const [right, setRight] = useState<AnalysisResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [objective, setObjective] = useState<CompareObjective>("roi");
 
   async function compare() {
     setLoading(true);
@@ -58,6 +60,37 @@ export default function ComparePage() {
       setLoading(false);
     }
   }
+
+  const decision = useMemo(() => {
+    if (!left || !right) return null;
+    const weights =
+      objective === "brand_safety"
+        ? { authenticity: 0.6, growth: 0.15, brand: 0.1, success: 0.15 }
+        : objective === "growth"
+          ? { authenticity: 0.1, growth: 0.6, brand: 0.1, success: 0.2 }
+          : { authenticity: 0.2, growth: 0.2, brand: 0.2, success: 0.4 };
+    const scoreOf = (a: AnalysisResult) =>
+      a.scores.authenticity * weights.authenticity +
+      a.scores.growthPotential * weights.growth +
+      a.scores.brandMatch * weights.brand +
+      a.scores.campaignSuccessProbability * weights.success;
+    const leftScore = scoreOf(left);
+    const rightScore = scoreOf(right);
+    const winner =
+      leftScore >= rightScore
+        ? { side: "A" as const, profile: left, other: right, delta: leftScore - rightScore }
+        : { side: "B" as const, profile: right, other: left, delta: rightScore - leftScore };
+    const reason =
+      objective === "brand_safety"
+        ? `higher authenticity (${winner.profile.scores.authenticity} vs ${winner.other.scores.authenticity})`
+        : objective === "growth"
+          ? `stronger growth potential (${winner.profile.scores.growthPotential} vs ${winner.other.scores.growthPotential})`
+          : `better campaign success estimate (${winner.profile.scores.campaignSuccessProbability}% vs ${winner.other.scores.campaignSuccessProbability}%)`;
+    return {
+      winner,
+      summary: `Pick ${winner.side} (@${winner.profile.profile.handle}) because it has ${reason} and leads the weighted objective by ${winner.delta.toFixed(1)} points.`,
+    };
+  }, [left, right, objective]);
 
   if (!left || !right) {
     return (
@@ -147,6 +180,16 @@ export default function ComparePage() {
         <h1 className="font-display text-3xl tracking-tight md:text-4xl">
           Comparison
         </h1>
+        <div className="flex items-center gap-2">
+          <select
+            value={objective}
+            onChange={(e) => setObjective(e.target.value as CompareObjective)}
+            className="h-9 rounded-lg border border-border bg-white px-3 text-sm shadow-sm"
+          >
+            <option value="roi">Winner by objective: ROI</option>
+            <option value="brand_safety">Winner by objective: Brand safety</option>
+            <option value="growth">Winner by objective: Growth</option>
+          </select>
           <Button
             variant="outline"
             size="sm"
@@ -158,13 +201,25 @@ export default function ComparePage() {
             New comparison
           </Button>
         </div>
-
-        <div className="mt-12 grid gap-6 md:grid-cols-2">
+      </div>
+      {decision && (
+        <p className="mt-6 rounded-xl border border-border bg-card px-4 py-3 text-sm text-foreground">
+          {decision.summary}
+        </p>
+      )}
+      <div className="mt-12 grid gap-6 md:grid-cols-2">
           {[left, right].map((a) => (
             <GlassPanel
               key={a.profile.id}
               className="flex flex-col items-center"
             >
+              <ProfileAvatar
+                name={a.profile.displayName}
+                avatarUrl={a.meta?.avatarUrl}
+                avatarGradient={a.profile.avatarGradient}
+                size={64}
+                className="mb-4"
+              />
               <ScoreRing score={a.scores.rankMint} size={120} />
               <h2 className="mt-4 text-center font-display text-xl tracking-tight">
                 {a.profile.displayName}
@@ -177,7 +232,7 @@ export default function ComparePage() {
           ))}
         </div>
 
-        <div className="glass-panel mt-10 overflow-hidden rounded-2xl">
+      <div className="glass-panel mt-10 overflow-hidden rounded-2xl">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border bg-muted/40">
@@ -233,7 +288,7 @@ export default function ComparePage() {
               })}
             </tbody>
           </table>
-        </div>
+      </div>
     </PageShell>
   );
 }

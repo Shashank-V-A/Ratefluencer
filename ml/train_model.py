@@ -17,6 +17,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import f1_score, roc_auc_score
 from sklearn.model_selection import train_test_split
 
 FEATURE_NAMES = [
@@ -93,7 +94,13 @@ def main() -> None:
     model = LogisticRegression(max_iter=800, C=1.0)
     model.fit(X_train, y_train)
     acc = model.score(X_test, y_test)
+    y_prob = model.predict_proba(X_test)[:, 1]
+    y_pred = (y_prob >= 0.5).astype(int)
+    auc = roc_auc_score(y_test, y_prob)
+    f1 = f1_score(y_test, y_pred)
     print(f"Test accuracy: {acc:.3f}")
+    print(f"AUC: {auc:.3f}")
+    print(f"F1: {f1:.3f}")
 
     coefs = dict(
         zip(
@@ -113,7 +120,10 @@ def main() -> None:
                 "modelVersion": version,
                 "dataset": dataset,
                 "testAccuracy": round(acc, 4),
+                "auc": round(float(auc), 4),
+                "f1": round(float(f1), 4),
                 "rows": int(len(y)),
+                "trainedAt": pd.Timestamp.now("UTC").isoformat(),
             },
             indent=2,
         )

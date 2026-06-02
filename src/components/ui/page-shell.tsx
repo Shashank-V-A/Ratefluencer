@@ -12,7 +12,7 @@ export function PageShell({
   wide?: boolean;
 }) {
   return (
-    <div className={cn("px-6 py-14 md:py-20", className)}>
+    <div className={cn("motion-safe-fade-up px-6 py-14 md:py-20", className)}>
       <div
         className={cn(
           "mx-auto",

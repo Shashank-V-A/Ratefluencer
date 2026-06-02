@@ -1,4 +1,8 @@
-import type { BrandProfile, InfluencerProfile } from "@/lib/types";
+import type {
+  BrandPriorityWeights,
+  BrandProfile,
+  InfluencerProfile,
+} from "@/lib/types";
 import { retrieveBrandCandidates } from "@/lib/brands/store";
 import {
   creatorEmbedText,
@@ -44,7 +48,8 @@ function matchedKeywords(
 export async function matchBrands(
   profile: InfluencerProfile,
   sessionId: string,
-  topK = 4
+  topK = 4,
+  weights?: BrandPriorityWeights
 ): Promise<{
   recommendations: {
     brand: BrandProfile;
@@ -56,12 +61,31 @@ export async function matchBrands(
   const { vector, provider } = await embedText(creatorEmbedText(profile));
   const candidates = await retrieveBrandCandidates(sessionId, vector, 12);
   const f = extractFeatures(profile);
+  const resolved = weights ?? {
+    nicheFit: 0.5,
+    geographyFit: 0.15,
+    engagementQuality: 0.35,
+  };
+  const total = Math.max(
+    resolved.nicheFit + resolved.geographyFit + resolved.engagementQuality,
+    0.0001
+  );
+  const nicheW = resolved.nicheFit / total;
+  const geoW = resolved.geographyFit / total;
+  const engageW = resolved.engagementQuality / total;
 
   const ranked = candidates.map(({ brand, similarity }) => {
+    const engagementQuality =
+      f.saveRate * 0.45 + f.shareRate * 0.3 + f.commentQuality * 0.25;
+    const geographyFit =
+      profile.demographics.source === "unavailable"
+        ? 0.55
+        : f.demographicMatch;
     const commerceFit =
-      f.saveRate * 0.35 + f.shareRate * 0.25 + f.contentCategoryFit * 0.4;
-    const raw =
-      finiteOr(similarity) * 0.55 + finiteOr(commerceFit) * 0.45;
+      finiteOr(similarity) * nicheW +
+      finiteOr(geographyFit) * geoW +
+      finiteOr(engagementQuality) * engageW;
+    const raw = finiteOr(commerceFit);
     const score = scorePercent(clampFinite(raw, 0, 1) * 100);
     const rationale = buildRationale(
       profile,

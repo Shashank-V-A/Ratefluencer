@@ -57,7 +57,36 @@ export async function fetchJson<T>(
   }
   if (!headers.has("Accept")) headers.set("Accept", "application/json");
 
-  const res = await fetch(url, { ...init, headers, cache: "no-store" });
+  let res: Response | null = null;
+  let networkError: unknown = null;
+  const retries = 2;
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      res = await fetch(url, { ...init, headers, cache: "no-store" });
+    } catch (error) {
+      networkError = error;
+      if (attempt < retries) {
+        await new Promise((r) => setTimeout(r, 250 * (attempt + 1)));
+        continue;
+      }
+      break;
+    }
+    if (res.status === 429 || res.status >= 500) {
+      if (attempt < retries) {
+        await new Promise((r) => setTimeout(r, 300 * (attempt + 1)));
+        continue;
+      }
+    }
+    break;
+  }
+  if (!res) {
+    throw new PlatformApiError(
+      `Network error while contacting ${init?.platform ?? "platform"} API`,
+      "NETWORK_ERROR",
+      undefined,
+      networkError instanceof Error ? networkError.message : undefined
+    );
+  }
   const text = await res.text();
   let data: ApiErrorBody = {};
   try {

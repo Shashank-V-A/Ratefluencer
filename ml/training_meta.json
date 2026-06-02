@@ -1,6 +1,9 @@
 {
   "modelVersion": "rm-trained-v1.1-campaign-labels",
   "dataset": "campaign_labels.csv",
-  "testAccuracy": 0.9524,
-  "rows": 420
+  "testAccuracy": 0.9506,
+  "auc": 1.0,
+  "f1": 0.9565,
+  "rows": 403,
+  "trainedAt": "2026-06-02T06:49:16.785752+00:00"
 }
