@@ -1,4 +1,5 @@
 import type { AnalysisResult, Platform } from "@/lib/types";
+import { resolveAnalysisBrandIds } from "@/lib/brands/store";
 import { getCachedAnalysis, setCachedAnalysis } from "@/lib/cache/analysis-cache";
 import { analyzeInfluencer } from "@/lib/ml/engine";
 import { getModelMetrics } from "@/lib/ml/model-metrics";
@@ -6,8 +7,6 @@ import { fetchCreatorFromPlatform } from "@/lib/platforms";
 import { buildProfileFromFetched } from "@/lib/profile/build";
 import { MODEL_VERSION } from "@/lib/ml/coefficients";
 import { scorePercent } from "@/lib/ml/safe-number";
-import { getValidYouTubeAccessToken } from "@/lib/youtube-oauth";
-
 function sanitizeScores(result: AnalysisResult): AnalysisResult {
   const s = result.scores;
   return {
@@ -38,12 +37,54 @@ function withMeta(
 export type AnalyzeOptions = {
   sessionId?: string;
   skipCache?: boolean;
+  brandIds?: string[];
   brandWeights?: {
     nicheFit: number;
     geographyFit: number;
     engagementQuality: number;
   };
 };
+
+async function applyBrandMatches(
+  result: AnalysisResult,
+  sessionId: string,
+  options: AnalyzeOptions
+): Promise<AnalysisResult> {
+  const { matchBrands } = await import("@/lib/ml/brand-match");
+  const { recommendations, embeddingProvider } = await matchBrands(
+    result.profile,
+    sessionId,
+    undefined,
+    options.brandWeights,
+    options.brandIds
+  );
+  const brandMatch = scorePercent(recommendations[0]?.score ?? 0);
+  const explainability = result.explainability
+    ? {
+        ...result.explainability,
+        brandMatch: {
+          ...result.explainability.brandMatch,
+          summary:
+            brandMatch >= 70
+              ? "Strong commercial fit with your selected brands."
+              : recommendations.length
+                ? "Brand alignment based on your selected workspace brands."
+                : "No brands selected — add and check brands on Analyze or Brands.",
+          positives: recommendations
+            .slice(0, 2)
+            .map((r) => `${r.brand.name}: ${r.score}% match`),
+        },
+      }
+    : result.explainability;
+
+  return {
+    ...result,
+    brandRecommendations: recommendations,
+    embeddingProvider,
+    scores: { ...result.scores, brandMatch },
+    explainability,
+  };
+}
 
 /** Fetch live data, run ML scoring, optional cache by platform+handle */
 export async function analyzeLiveCreator(
@@ -53,28 +94,24 @@ export async function analyzeLiveCreator(
 ): Promise<AnalysisResult> {
   const normalized = handle.replace(/^@/, "").trim();
   const modelMetrics = getModelMetrics();
+  const sessionId = options.sessionId ?? "anonymous";
+  const brandIds = await resolveAnalysisBrandIds(sessionId, options.brandIds);
+  const resolvedOptions: AnalyzeOptions = { ...options, sessionId, brandIds };
 
-  if (!options.skipCache) {
+  if (!resolvedOptions.skipCache) {
     const cached = await getCachedAnalysis(platform, normalized);
     if (cached) {
-      if (platform === "youtube" && cached.profile.demographics.source !== "api") {
-        const hasYoutubeOAuth = Boolean(await getValidYouTubeAccessToken());
-        if (hasYoutubeOAuth) {
-          // Re-fetch live once to upgrade demographics from inferred/unavailable to API.
-        } else {
-          return withMeta(sanitizeScores(cached), {
-            ...cached.meta!,
-            cached: true,
-            modelVersion: MODEL_VERSION,
-          });
-        }
-      } else {
-      return withMeta(sanitizeScores(cached), {
-        ...cached.meta!,
+      const withBrands = await applyBrandMatches(cached, sessionId, resolvedOptions);
+      return withMeta(sanitizeScores(withBrands), {
+        ...withBrands.meta!,
         cached: true,
         modelVersion: MODEL_VERSION,
+        brandIds,
+        scoringNotes: [
+          ...(withBrands.meta?.scoringNotes ?? []),
+          "Creator metrics from cache; brand matches refreshed for your selection.",
+        ],
       });
-      }
     }
   }
 
@@ -83,9 +120,10 @@ export async function analyzeLiveCreator(
     const profile = buildProfileFromFetched(raw);
     const sampleSize = Math.max(1, raw.mediaCount || raw.media.length || 1);
     const confidence = scorePercent(Math.min(96, 55 + Math.log10(sampleSize + 1) * 24));
-    const result = await analyzeInfluencer(profile, options.sessionId ?? "anonymous", {
-      brandWeights: options.brandWeights,
+    const result = await analyzeInfluencer(profile, sessionId, {
+      brandWeights: resolvedOptions.brandWeights,
       sampleSize,
+      brandIds,
     });
 
     const warnings: string[] = [];
@@ -124,6 +162,7 @@ export async function analyzeLiveCreator(
       sampleSize,
       confidence,
       freshnessMinutes: 0,
+      brandIds,
     }
     );
 
@@ -132,11 +171,13 @@ export async function analyzeLiveCreator(
   } catch (error) {
     const stale = await getCachedAnalysis(platform, normalized);
     if (stale) {
-      return withMeta(sanitizeScores(stale), {
-        ...stale.meta!,
+      const withBrands = await applyBrandMatches(stale, sessionId, resolvedOptions);
+      return withMeta(sanitizeScores(withBrands), {
+        ...withBrands.meta!,
         cached: true,
+        brandIds,
         warnings: [
-          ...(stale.meta?.warnings ?? []),
+          ...(withBrands.meta?.warnings ?? []),
           "Live fetch failed, showing last cached snapshot.",
         ],
       });

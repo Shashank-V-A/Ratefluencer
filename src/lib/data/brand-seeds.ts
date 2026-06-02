@@ -1,6 +1,6 @@
 import type { BrandProfile } from "@/lib/types";
 
-/** Optional starter catalog — add your own brands in /brands */
+/** Legacy catalog (no longer auto-seeded) — kept for reference only */
 export const brandDefs: Omit<BrandProfile, "embedding">[] = [
   {
     id: "dbrand",

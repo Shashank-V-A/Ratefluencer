@@ -1,21 +1,34 @@
 import { analyzeLiveCreator, decodeLiveReportId } from "@/lib/analyze";
+import { resolveAnalysisBrandIds } from "@/lib/brands/store";
 import { CreatorReportView } from "@/components/creator-report-view";
 import { PlatformApiError } from "@/lib/platforms";
+import { parseReportBrandIds } from "@/lib/report-id";
+import { getSessionId } from "@/lib/session";
 import { notFound } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
 export default async function LiveReportPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ brands?: string }>;
 }) {
   const { id } = await params;
+  const { brands: brandsParam } = await searchParams;
   const live = decodeLiveReportId(id);
   if (!live) notFound();
 
+  const sessionId = await getSessionId();
+  const brandIdsFromUrl = parseReportBrandIds(brandsParam);
+  const brandIds = await resolveAnalysisBrandIds(sessionId, brandIdsFromUrl);
+
   try {
-    const analysis = await analyzeLiveCreator(live.platform, live.handle);
+    const analysis = await analyzeLiveCreator(live.platform, live.handle, {
+      sessionId,
+      brandIds,
+    });
     return (
       <CreatorReportView
         analysis={analysis}

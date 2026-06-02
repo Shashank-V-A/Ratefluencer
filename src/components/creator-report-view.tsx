@@ -206,12 +206,23 @@ export function CreatorReportView({
                 Brand partnership recommendations
               </h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                Semantic embeddings + pgvector retrieval · commerce rerank
+                Match scores for the brands you selected on Analyze
               </p>
               <div className="mt-6">
-                <BrandMatchList
-                  recommendations={analysis.brandRecommendations}
-                />
+                {analysis.brandRecommendations.length > 0 ? (
+                  <BrandMatchList
+                    recommendations={analysis.brandRecommendations}
+                  />
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    No brands selected for analysis. Add brands on the{" "}
+                    <a href="/brands" className="text-primary hover:underline">
+                      Brand workspace
+                    </a>{" "}
+                    and enable &quot;Include in full analysis&quot;, then run
+                    Analyze again.
+                  </p>
+                )}
               </div>
             </div>
 

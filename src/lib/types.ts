@@ -14,6 +14,8 @@ export interface AnalysisMeta {
   sampleSize?: number;
   confidence?: number;
   freshnessMinutes?: number;
+  /** Brand workspace IDs used for partnership scoring on this run */
+  brandIds?: string[];
 }
 
 export interface AudienceDemographics {
@@ -72,6 +74,8 @@ export interface BrandProfile {
   budgetTier: "startup" | "growth" | "enterprise";
   keywords: string[];
   embedding: number[];
+  /** When false, excluded from full-analysis brand match section */
+  includeInAnalysis?: boolean;
 }
 
 export interface ScoreBreakdown {

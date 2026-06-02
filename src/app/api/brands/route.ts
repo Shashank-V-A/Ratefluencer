@@ -1,4 +1,9 @@
-import { createBrand, deleteBrand, listBrands } from "@/lib/brands/store";
+import {
+  createBrand,
+  deleteBrand,
+  listBrands,
+  setBrandIncludeInAnalysis,
+} from "@/lib/brands/store";
 import { getSessionId } from "@/lib/session";
 import type { BrandProfile } from "@/lib/types";
 import { NextResponse } from "next/server";
@@ -39,6 +44,30 @@ export async function POST(request: Request) {
   }
 
   return NextResponse.json({ brand }, { status: 201 });
+}
+
+export async function PATCH(request: Request) {
+  const sessionId = await getSessionId();
+  const body = await request.json().catch(() => ({}));
+  const id = typeof body.id === "string" ? body.id : "";
+  if (!id) {
+    return NextResponse.json({ error: "Brand id required" }, { status: 400 });
+  }
+  if (typeof body.includeInAnalysis !== "boolean") {
+    return NextResponse.json(
+      { error: "includeInAnalysis boolean required" },
+      { status: 400 }
+    );
+  }
+  const ok = await setBrandIncludeInAnalysis(
+    sessionId,
+    id,
+    body.includeInAnalysis
+  );
+  if (!ok) {
+    return NextResponse.json({ error: "Brand not found" }, { status: 404 });
+  }
+  return NextResponse.json({ ok: true });
 }
 
 export async function DELETE(request: Request) {

@@ -264,7 +264,6 @@ export default function MethodologyPage() {
           </div>
           <p className="mt-4 max-w-2xl text-sm leading-relaxed text-muted-foreground">
             Built from creator location, content niche, and platform benchmarks.
-            Platform Insights OAuth overrides when connected.
           </p>
         </div>
       </div>

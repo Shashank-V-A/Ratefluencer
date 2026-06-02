@@ -19,6 +19,9 @@ export async function POST(request: Request) {
     typeof body.handle === "string" ? body.handle.trim().replace(/^@/, "") : "";
   const platform = parsePlatform(body.platform);
   const skipCache = body.skipCache === true;
+  const brandIds = Array.isArray(body.brandIds)
+    ? body.brandIds.filter((id: unknown) => typeof id === "string" && id.trim())
+    : undefined;
   const brandWeights =
     body.brandWeights &&
     typeof body.brandWeights === "object" &&
@@ -55,6 +58,7 @@ export async function POST(request: Request) {
     const result = await analyzeLiveCreator(platform, handle, {
       sessionId,
       skipCache,
+      brandIds,
       brandWeights,
     });
     return NextResponse.json(result);

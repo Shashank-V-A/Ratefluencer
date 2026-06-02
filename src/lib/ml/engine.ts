@@ -14,12 +14,22 @@ import { computeRankMintScore } from "./rank-mint";
 export async function analyzeInfluencer(
   profile: InfluencerProfile,
   sessionId: string,
-  options?: { brandWeights?: BrandPriorityWeights; sampleSize?: number }
+  options?: {
+    brandWeights?: BrandPriorityWeights;
+    sampleSize?: number;
+    brandIds?: string[];
+  }
 ): Promise<AnalysisResult> {
   const { score: authenticity, flags } = computeAuthenticityScore(profile);
   const growth = computeGrowthPotential(profile);
   const { recommendations: brandRecommendations, embeddingProvider } =
-    await matchBrands(profile, sessionId, 4, options?.brandWeights);
+    await matchBrands(
+      profile,
+      sessionId,
+      undefined,
+      options?.brandWeights,
+      options?.brandIds
+    );
   const brandMatch = scorePercent(brandRecommendations[0]?.score ?? 0);
   const rank = computeRankMintScore(profile);
 

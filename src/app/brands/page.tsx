@@ -13,6 +13,7 @@ export default function BrandsPage() {
   const [description, setDescription] = useState("");
   const [keywords, setKeywords] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function load() {
     const res = await fetch("/api/brands");
@@ -27,8 +28,9 @@ export default function BrandsPage() {
   async function addBrand(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
+    setError(null);
     try {
-      await fetch("/api/brands", {
+      const res = await fetch("/api/brands", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -38,6 +40,11 @@ export default function BrandsPage() {
           keywords: keywords.split(",").map((k) => k.trim()).filter(Boolean),
         }),
       });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setError(data.error ?? "Could not add brand");
+        return;
+      }
       setName("");
       setCategory("");
       setDescription("");
@@ -49,27 +56,48 @@ export default function BrandsPage() {
   }
 
   async function remove(id: string) {
-    await fetch(`/api/brands?id=${id}`, { method: "DELETE" });
+    setBrands((prev) => prev.filter((b) => b.id !== id));
+    const res = await fetch(`/api/brands?id=${encodeURIComponent(id)}`, {
+      method: "DELETE",
+    });
+    if (!res.ok) {
+      await load();
+      return;
+    }
     await load();
   }
 
+  async function toggleInclude(id: string, includeInAnalysis: boolean) {
+    setBrands((prev) =>
+      prev.map((b) => (b.id === id ? { ...b, includeInAnalysis } : b))
+    );
+    const res = await fetch("/api/brands", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, includeInAnalysis }),
+    });
+    if (!res.ok) await load();
+  }
+
+  const analysisCount = brands.filter((b) => b.includeInAnalysis !== false).length;
+
   return (
     <PageShell>
-      <PageTitle subtitle="Add real brand briefs for embedding + RAG retrieval during analysis. Legacy demo catalog entries are removed automatically.">
+      <PageTitle subtitle="Add brands you care about. Only checked brands appear with match scores on full creator analysis. Removed brands stay deleted.">
         Brand workspace
       </PageTitle>
 
       <GlassPanel className="mb-8">
         <form onSubmit={addBrand} className="space-y-4">
           <Input
-            placeholder="Brand name"
+            placeholder="Brand name (e.g. Duolingo)"
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
             className="border-border bg-white shadow-sm"
           />
           <Input
-            placeholder="Category (e.g. D2C Beauty)"
+            placeholder="Category (e.g. EdTech / App)"
             value={category}
             onChange={(e) => setCategory(e.target.value)}
             className="border-border bg-white shadow-sm"
@@ -78,7 +106,7 @@ export default function BrandsPage() {
             placeholder="Brand brief — who you partner with and why"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="min-h-24 w-full rounded-lg border border-border bg-white shadow-sm px-3 py-2 text-sm"
+            className="min-h-24 w-full rounded-lg border border-border bg-white px-3 py-2 text-sm shadow-sm"
           />
           <Input
             placeholder="Keywords, comma-separated"
@@ -86,31 +114,58 @@ export default function BrandsPage() {
             onChange={(e) => setKeywords(e.target.value)}
             className="border-border bg-white shadow-sm"
           />
+          {error && (
+            <p className="text-sm text-destructive">{error}</p>
+          )}
           <Button type="submit" disabled={loading}>
             {loading ? "Adding…" : "Add brand"}
           </Button>
         </form>
       </GlassPanel>
 
-      <div className="space-y-3">
-        {brands.map((b) => (
-          <GlassPanel key={b.id} className="flex items-start justify-between gap-4">
-            <div>
-              <p className="font-medium">{b.name}</p>
-              <p className="text-xs text-muted-foreground">{b.category}</p>
-              <p className="mt-2 text-sm text-muted-foreground">{b.description}</p>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => remove(b.id)}
-              className="shrink-0 text-muted-foreground"
-            >
-              Remove
-            </Button>
-          </GlassPanel>
-        ))}
-      </div>
+      {brands.length === 0 ? (
+        <GlassPanel>
+          <p className="text-sm text-muted-foreground">
+            No brands yet. Add Duolingo, Glossier, or any partner you want scored on
+            the Analyze report.
+          </p>
+        </GlassPanel>
+      ) : (
+        <div className="space-y-3">
+          <p className="text-xs text-muted-foreground">
+            {analysisCount} of {brands.length} brand{brands.length === 1 ? "" : "s"}{" "}
+            included in full analysis
+          </p>
+          {brands.map((b) => (
+            <GlassPanel key={b.id} className="flex items-start justify-between gap-4">
+              <div className="min-w-0 flex-1">
+                <p className="font-medium">{b.name}</p>
+                <p className="text-xs text-muted-foreground">{b.category}</p>
+                <p className="mt-2 text-sm text-muted-foreground">{b.description}</p>
+                <label className="mt-3 flex cursor-pointer items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={b.includeInAnalysis !== false}
+                    onChange={(e) => toggleInclude(b.id, e.target.checked)}
+                    className="h-4 w-4 rounded border-border accent-primary"
+                  />
+                  <span className="text-muted-foreground">
+                    Include in full analysis
+                  </span>
+                </label>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => remove(b.id)}
+                className="shrink-0 text-muted-foreground hover:text-destructive"
+              >
+                Remove
+              </Button>
+            </GlassPanel>
+          ))}
+        </div>
+      )}
     </PageShell>
   );
 }

@@ -3,7 +3,10 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import type { AnalysisResult, Platform } from "@/lib/types";
-import { encodeLiveReportId } from "@/lib/report-id";
+import {
+  buildReportBrandQuery,
+  encodeLiveReportId,
+} from "@/lib/report-id";
 import { ScoreRing } from "@/components/score-ring";
 import { ScoreBreakdownPanel } from "@/components/score-breakdown";
 import { PlatformSelector } from "@/components/platform-selector";
@@ -13,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { GlassPanel, PageShell, PageTitle } from "@/components/ui/page-shell";
 import { Loader2, Search } from "lucide-react";
 import { ProfileAvatar } from "@/components/ui/profile-avatar";
+import { BrandAnalysisPicker } from "@/components/brand-analysis-picker";
 
 type PlatformStatus = Record<string, { configured: boolean }>;
 
@@ -30,43 +34,12 @@ export default function AnalyzePage() {
     geographyFit: 15,
     engagementQuality: 35,
   });
-  const [youtubeOAuth, setYoutubeOAuth] = useState<{
-    configured: boolean;
-    connected: boolean;
-  }>({ configured: false, connected: false });
-
+  const [selectedBrandIds, setSelectedBrandIds] = useState<string[]>([]);
   useEffect(() => {
     fetch("/api/platforms/status")
       .then((r) => r.json())
       .then((d) => setApiStatus(d.platforms))
       .catch(() => setApiStatus(null));
-    fetch("/api/oauth/youtube/status")
-      .then((r) => r.json())
-      .then((d) =>
-        setYoutubeOAuth({
-          configured: Boolean(d.configured),
-          connected: Boolean(d.connected),
-        })
-      )
-      .catch(() =>
-        setYoutubeOAuth({
-          configured: false,
-          connected: false,
-        })
-      );
-  }, []);
-
-  useEffect(() => {
-    const status = new URLSearchParams(window.location.search).get(
-      "youtube_oauth"
-    );
-    if (!status) return;
-    if (status === "connected") {
-      setToast("YouTube Analytics connected. Audience demographics now use API insights.");
-      setYoutubeOAuth((prev) => ({ ...prev, connected: true }));
-    } else {
-      setToast(`YouTube OAuth status: ${status.replaceAll("_", " ")}`);
-    }
   }, []);
 
   const platformReady =
@@ -92,6 +65,7 @@ export default function AnalyzePage() {
             geographyFit: brandWeights.geographyFit,
             engagementQuality: brandWeights.engagementQuality,
           },
+          brandIds: selectedBrandIds,
         }),
       });
       const data = await res.json();
@@ -123,7 +97,11 @@ export default function AnalyzePage() {
   }, [toast]);
 
   const reportHref = result
-    ? `/report/${encodeLiveReportId(result.profile.platform, result.profile.handle)}`
+    ? `/report/${encodeLiveReportId(result.profile.platform, result.profile.handle)}${buildReportBrandQuery(
+        result.meta?.brandIds?.length
+          ? result.meta.brandIds
+          : selectedBrandIds
+      )}`
     : "#";
 
   return (
@@ -169,6 +147,12 @@ export default function AnalyzePage() {
             )}
           </Button>
         </form>
+
+        <BrandAnalysisPicker
+          selectedIds={selectedBrandIds}
+          onSelectedIdsChange={setSelectedBrandIds}
+          disabled={loading}
+        />
 
         <div className="grid gap-4 rounded-xl border border-border bg-muted/20 p-4">
           <div className="flex items-center justify-between">

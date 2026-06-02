@@ -2,8 +2,6 @@ import { getYouTubeStatus } from "@/lib/env";
 import { fetchJson } from "./http";
 import type { FetchedCreatorRaw, FetchedMediaItem } from "./types";
 import { PlatformApiError } from "./types";
-import { getValidYouTubeAccessToken } from "@/lib/youtube-oauth";
-
 const YT_BASE = "https://www.googleapis.com/youtube/v3";
 
 interface YtChannelResponse {
@@ -45,28 +43,6 @@ interface YtVideosResponse {
     };
     contentDetails?: { duration?: string };
   }[];
-}
-
-interface YtAnalyticsResponse {
-  columnHeaders?: { name: string }[];
-  rows?: (string | number)[][];
-}
-
-function hasRealDemographicsData(input: {
-  ageGroups?: { range: string; percent: number }[];
-  topCountries?: { country: string; percent: number }[];
-  genderSplit?: { female: number; male: number; other: number };
-}): boolean {
-  const ageSum = (input.ageGroups ?? []).reduce((s, r) => s + (r.percent || 0), 0);
-  const countrySum = (input.topCountries ?? []).reduce(
-    (s, r) => s + (r.percent || 0),
-    0
-  );
-  const gender =
-    (input.genderSplit?.female ?? 0) +
-    (input.genderSplit?.male ?? 0) +
-    (input.genderSplit?.other ?? 0);
-  return ageSum > 0 || countrySum > 0 || gender > 0;
 }
 
 function normalizeHandle(handle: string): string {
@@ -172,77 +148,6 @@ export async function fetchYouTubeCreator(
 
   const stats = channel.statistics;
   const snippet = channel.snippet;
-  const oauthToken = await getValidYouTubeAccessToken();
-  let demographics:
-    | {
-        source: "api";
-        ageGroups?: { range: string; percent: number }[];
-        topCountries?: { country: string; percent: number }[];
-        genderSplit?: { female: number; male: number; other: number };
-      }
-    | undefined;
-
-  if (oauthToken) {
-    try {
-      const endDate = new Date();
-      const startDate = new Date(endDate);
-      startDate.setDate(endDate.getDate() - 30);
-      const fmt = (d: Date) => d.toISOString().slice(0, 10);
-
-      const byAgeGender = await fetchJson<YtAnalyticsResponse>(
-        `https://youtubeanalytics.googleapis.com/v2/reports?ids=channel==MINE&startDate=${fmt(startDate)}&endDate=${fmt(endDate)}&metrics=viewerPercentage&dimensions=ageGroup,gender`,
-        { bearerToken: oauthToken, platform: "youtube" }
-      );
-
-      const byCountry = await fetchJson<YtAnalyticsResponse>(
-        `https://youtubeanalytics.googleapis.com/v2/reports?ids=channel==MINE&startDate=${fmt(startDate)}&endDate=${fmt(endDate)}&metrics=views&dimensions=country&sort=-views&maxResults=5`,
-        { bearerToken: oauthToken, platform: "youtube" }
-      );
-
-      const ageMap = new Map<string, number>();
-      let female = 0;
-      let male = 0;
-      let other = 0;
-      for (const row of byAgeGender.rows ?? []) {
-        const age = String(row[0] ?? "");
-        const gender = String(row[1] ?? "").toLowerCase();
-        const pct = Number(row[2] ?? 0);
-        ageMap.set(age, (ageMap.get(age) ?? 0) + pct);
-        if (gender.includes("female")) female += pct;
-        else if (gender.includes("male")) male += pct;
-        else other += pct;
-      }
-
-      const countriesRaw = (byCountry.rows ?? [])
-        .map((r) => ({ country: String(r[0] ?? ""), views: Number(r[1] ?? 0) }))
-        .filter((r) => r.country && Number.isFinite(r.views) && r.views > 0);
-      const totalViews = countriesRaw.reduce((s, r) => s + r.views, 0) || 1;
-
-      const candidate: NonNullable<typeof demographics> = {
-        source: "api",
-        ageGroups: [...ageMap.entries()]
-          .map(([range, percent]) => ({
-            range,
-            percent: Math.round(percent * 10) / 10,
-          }))
-          .slice(0, 6),
-        topCountries: countriesRaw.map((r) => ({
-          country: r.country,
-          percent: Math.round((r.views / totalViews) * 1000) / 10,
-        })),
-        genderSplit: {
-          female: Math.round(female * 10) / 10,
-          male: Math.round(male * 10) / 10,
-          other: Math.max(0, Math.round(other * 10) / 10),
-        },
-      };
-      if (hasRealDemographicsData(candidate)) {
-        demographics = candidate;
-      }
-    } catch {
-      // Keep core flow resilient; demographics fall back to inferred later.
-    }
-  }
 
   return {
     platform: "youtube",
@@ -260,7 +165,6 @@ export async function fetchYouTubeCreator(
       totalChannelViews: parseInt(stats?.viewCount ?? "0", 10),
       avgDurationSec,
       channelCountry: snippet?.country ?? "",
-      demographics,
     },
   };
 }

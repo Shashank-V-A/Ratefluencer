@@ -6,9 +6,17 @@ export function BrandMatchList({
 }: {
   recommendations: AnalysisResult["brandRecommendations"];
 }) {
+  const seen = new Set<string>();
+  const unique = recommendations.filter((rec) => {
+    const key = rec.brand.name.trim().toLowerCase();
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+
   return (
     <div className="space-y-4">
-      {recommendations.map((rec, i) => (
+      {unique.map((rec, i) => (
         <div
           key={rec.brand.id}
           className="rounded-xl border border-border/70 bg-muted/20 p-5"

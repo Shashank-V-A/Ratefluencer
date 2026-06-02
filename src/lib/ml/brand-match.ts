@@ -3,8 +3,12 @@ import type {
   BrandProfile,
   InfluencerProfile,
 } from "@/lib/types";
-import { retrieveBrandCandidates } from "@/lib/brands/store";
 import {
+  listBrandsForAnalysis,
+  resolveAnalysisBrandIds,
+} from "@/lib/brands/store";
+import {
+  cosineSimilarity,
   creatorEmbedText,
   embedText,
   type EmbeddingProvider,
@@ -48,8 +52,9 @@ function matchedKeywords(
 export async function matchBrands(
   profile: InfluencerProfile,
   sessionId: string,
-  topK = 4,
-  weights?: BrandPriorityWeights
+  _topK?: number,
+  weights?: BrandPriorityWeights,
+  brandIds?: string[]
 ): Promise<{
   recommendations: {
     brand: BrandProfile;
@@ -58,8 +63,16 @@ export async function matchBrands(
   }[];
   embeddingProvider: EmbeddingProvider;
 }> {
+  const resolvedIds = await resolveAnalysisBrandIds(sessionId, brandIds);
+  const allIncluded = await listBrandsForAnalysis(sessionId);
+  const workspaceBrands = allIncluded.filter((b) => resolvedIds.includes(b.id));
+
   const { vector, provider } = await embedText(creatorEmbedText(profile));
-  const candidates = await retrieveBrandCandidates(sessionId, vector, 12);
+
+  if (!workspaceBrands.length) {
+    return { recommendations: [], embeddingProvider: provider };
+  }
+
   const f = extractFeatures(profile);
   const resolved = weights ?? {
     nicheFit: 0.5,
@@ -74,7 +87,8 @@ export async function matchBrands(
   const geoW = resolved.geographyFit / total;
   const engageW = resolved.engagementQuality / total;
 
-  const ranked = candidates.map(({ brand, similarity }) => {
+  const ranked = workspaceBrands.map((brand) => {
+    const similarity = cosineSimilarity(vector, brand.embedding);
     const engagementQuality =
       f.saveRate * 0.45 + f.shareRate * 0.3 + f.commentQuality * 0.25;
     const geographyFit =
@@ -97,8 +111,18 @@ export async function matchBrands(
     return { brand, score, rationale };
   });
 
+  const seen = new Set<string>();
+  const unique = ranked
+    .sort((a, b) => b.score - a.score)
+    .filter((r) => {
+      const key = r.brand.name.trim().toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+
   return {
-    recommendations: ranked.sort((a, b) => b.score - a.score).slice(0, topK),
+    recommendations: unique,
     embeddingProvider: provider,
   };
 }

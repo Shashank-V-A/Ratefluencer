@@ -27,6 +27,7 @@ create table if not exists public.brands (
   budget_tier text not null default 'growth' check (budget_tier in ('startup', 'growth', 'enterprise')),
   keywords text[] not null default '{}',
   embedding vector(1536),
+  include_in_analysis boolean not null default true,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
