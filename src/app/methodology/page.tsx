@@ -5,7 +5,6 @@ import {
   Handshake,
   Radio,
   Shield,
-  Sparkles,
   TrendingUp,
   Users,
   type LucideIcon,
@@ -25,7 +24,8 @@ const LIVE_ITEMS = [
 ];
 
 type ScoreCard = {
-  icon: LucideIcon;
+  icon?: LucideIcon;
+  brandLogo?: boolean;
   title: string;
   range: string;
   source: string;
@@ -81,7 +81,7 @@ const SCORES: ScoreCard[] = [
     ],
   },
   {
-    icon: Sparkles,
+    brandLogo: true,
     title: "RankMint",
     subtitle: "Ratefluencer Score",
     range: "0-100",
@@ -134,7 +134,7 @@ export default function MethodologyPage() {
 
         <div className="glass-panel rounded-2xl p-6">
           <div className="flex items-center gap-2 text-primary">
-            <Sparkles className="h-4 w-4" strokeWidth={2} />
+            <BarChart3 className="h-4 w-4" strokeWidth={2} />
             <span className="text-xs font-semibold uppercase tracking-widest">
               Modeled and inferred
             </span>
@@ -215,9 +215,15 @@ export default function MethodologyPage() {
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-2.5">
-                  <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-primary">
-                    <Icon className="h-4 w-4" strokeWidth={1.75} />
-                  </span>
+                  {score.brandLogo ? (
+                    <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-sm font-bold text-primary-foreground shadow-sm">
+                      R
+                    </span>
+                  ) : Icon ? (
+                    <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-primary">
+                      <Icon className="h-4 w-4" strokeWidth={1.75} />
+                    </span>
+                  ) : null}
                   <div>
                     <h2 className="font-display text-lg leading-tight">
                       {score.title}

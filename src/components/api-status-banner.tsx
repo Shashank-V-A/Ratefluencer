@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AlertCircle, CheckCircle2 } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 
 type PlatformStatus = { configured: boolean; missing: string[] };
 
@@ -34,21 +34,7 @@ export function ApiStatusBanner() {
   const xOk = xKeyPresent && xVerify?.ok === true;
   const coreReady = youtubeOk && xOk;
 
-  if (coreReady) {
-    return (
-      <div className="flex flex-col gap-2 rounded-xl border border-orange-200 bg-orange-50 px-4 py-3 text-sm text-orange-800">
-        <div className="flex items-center gap-2">
-          <CheckCircle2 className="h-4 w-4 shrink-0 text-orange-600" />
-          <span>
-            YouTube + X API keys verified.
-          </span>
-        </div>
-        <p className="pl-6 text-xs text-orange-700/80">
-          X free tier: profile lookup works; tweet history may be limited.
-        </p>
-      </div>
-    );
-  }
+  if (coreReady) return null;
 
   if (xKeyPresent && xVerify && !xVerify.ok && !xVerify.tokenValid) {
     return (

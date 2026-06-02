@@ -9,7 +9,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { GlassPanel, PageShell, PageTitle } from "@/components/ui/page-shell";
 import { Loader2 } from "lucide-react";
-import { ApiStatusBanner } from "@/components/api-status-banner";
 import { ProfileAvatar } from "@/components/ui/profile-avatar";
 
 async function fetchAnalysis(
@@ -98,7 +97,6 @@ export default function ComparePage() {
         <PageTitle subtitle="Side-by-side intelligence from live API data — two profiles analyzed in parallel.">
           Compare creators
         </PageTitle>
-        <ApiStatusBanner />
         <div className="mt-8 grid gap-6 md:grid-cols-2">
           {(
             [
