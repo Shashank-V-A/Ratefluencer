@@ -2,13 +2,11 @@ import Link from "next/link";
 import { HeroSection } from "@/components/marketing/hero-section";
 import { FeaturesSection } from "@/components/marketing/features-section";
 import { GoogleSigninBanner } from "@/components/marketing/google-signin-banner";
-import { LinkedInSigninBanner } from "@/components/marketing/linkedin-signin-banner";
 
 export default function HomePage() {
   return (
     <>
       <GoogleSigninBanner />
-      <LinkedInSigninBanner />
       <HeroSection />
       <FeaturesSection />
 
@@ -33,7 +31,7 @@ export default function HomePage() {
       <footer className="border-t border-border bg-white/50 px-6 py-10">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 text-center text-xs text-muted-foreground md:flex-row md:text-left">
           <p className="font-display text-sm text-foreground">RankMint</p>
-          <p>Live influencer intelligence · YouTube · X · LinkedIn</p>
+          <p>Live influencer intelligence · YouTube · X</p>
         </div>
       </footer>
     </>

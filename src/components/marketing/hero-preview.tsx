@@ -57,7 +57,7 @@ export function HeroPreview() {
       </div>
 
       <div className="mt-8 grid grid-cols-3 gap-2 border-t border-border pt-6">
-        {["YouTube", "X", "LinkedIn"].map((p) => (
+        {["YouTube", "X"].map((p) => (
           <div
             key={p}
             className="rounded-xl border border-border bg-muted/40 px-2 py-2 text-center text-[10px] font-medium text-muted-foreground"

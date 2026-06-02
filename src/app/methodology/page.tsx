@@ -21,7 +21,7 @@ const LIVE_ITEMS = [
   "Profile, bio, followers, following",
   "Likes, comments, shares, saves, views",
   "Posting frequency (last 30 / 90 days)",
-  "YouTube · X · LinkedIn APIs",
+  "YouTube · X APIs",
 ];
 
 type ScoreCard = {

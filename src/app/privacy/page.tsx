@@ -13,7 +13,7 @@ export default function PrivacyPage() {
           submits a handle. We do not sell personal data.
         </p>
         <p>
-          Data from third-party APIs (X, YouTube, LinkedIn) is used only to
+          Data from third-party APIs (X, YouTube) is used only to
           display analytics in this application and is not redistributed.
         </p>
         <p>

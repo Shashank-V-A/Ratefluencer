@@ -13,23 +13,6 @@ export function getYouTubeStatus(): PlatformEnvStatus {
   return { configured: missing.length === 0, missing };
 }
 
-export function getLinkedInStatus(): PlatformEnvStatus {
-  const missing: string[] = [];
-  const oauthReady =
-    Boolean(process.env.LINKEDIN_OAUTH_CLIENT_ID?.trim()) &&
-    Boolean(process.env.LINKEDIN_OAUTH_CLIENT_SECRET?.trim());
-  if (!getLinkedInAccessToken() && !oauthReady) {
-    missing.push(
-      "LINKEDIN_OAUTH_CLIENT_ID + LINKEDIN_OAUTH_CLIENT_SECRET (or LINKEDIN_ACCESS_TOKEN)"
-    );
-  }
-  return { configured: missing.length === 0, missing };
-}
-
-export function getLinkedInAccessToken(): string | undefined {
-  return normalizeEnvSecret(process.env.LINKEDIN_ACCESS_TOKEN);
-}
-
 export function getXStatus(): PlatformEnvStatus {
   const token =
     process.env.X_API_BEARER_TOKEN?.trim() ||
@@ -42,7 +25,6 @@ export function getXStatus(): PlatformEnvStatus {
 export function getAllPlatformStatus() {
   return {
     youtube: getYouTubeStatus(),
-    linkedin: getLinkedInStatus(),
     x: getXStatus(),
   };
 }
@@ -82,10 +64,6 @@ export function getCorePlatformStatus() {
     youtube: getYouTubeStatus(),
     x: getXStatus(),
   };
-}
-
-export function isLinkedInOptional() {
-  return !getLinkedInStatus().configured;
 }
 
 export function getOpenAIStatus(): PlatformEnvStatus & { optional: true } {

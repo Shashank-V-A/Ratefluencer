@@ -48,7 +48,7 @@ export async function POST(request: Request) {
         .slice(0, 25)
     : [];
 
-  if (!platform || !["youtube", "x", "linkedin"].includes(platform)) {
+  if (!platform || !["youtube", "x"].includes(platform)) {
     return NextResponse.json({ error: "Valid platform is required" }, { status: 400 });
   }
   if (!handles.length) {

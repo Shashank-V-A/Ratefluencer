@@ -29,7 +29,6 @@ const NICHE_AGE: Record<ContentNiche, number[]> = {
 
 const PLATFORM_AGE_SHIFT: Record<Platform, number[]> = {
   youtube: [0, -2, 2, 1, 0, -1],
-  linkedin: [-2, -2, 4, 4, 2, -2],
   x: [-2, -4, 2, 4, 2, -2],
 };
 

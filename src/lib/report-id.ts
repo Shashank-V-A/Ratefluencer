@@ -12,7 +12,7 @@ export function decodeLiveReportId(id: string): {
   const handle = rest.join("__");
   if (
     !handle ||
-    !["linkedin", "youtube", "x"].includes(platform ?? "")
+    !["youtube", "x"].includes(platform ?? "")
   ) {
     return null;
   }

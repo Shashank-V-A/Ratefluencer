@@ -71,8 +71,7 @@ export default function AnalyzePage() {
 
   const platformReady =
     (platform === "youtube" && apiStatus?.youtube?.configured) ||
-    (platform === "x" && apiStatus?.x?.configured) ||
-    (platform === "linkedin" && apiStatus?.linkedin?.configured);
+    (platform === "x" && apiStatus?.x?.configured);
 
   async function runAnalysis(targetHandle?: string) {
     const h = (targetHandle ?? handle).replace(/^@/, "").trim();
@@ -218,11 +217,7 @@ export default function AnalyzePage() {
           <p className="rounded-xl border border-destructive/25 bg-destructive/10 px-4 py-3 text-sm text-destructive">
             Configure{" "}
             <strong>
-              {platform === "youtube"
-                ? "YOUTUBE_API_KEY"
-                : platform === "x"
-                  ? "X_API_BEARER_TOKEN"
-                  : "LINKEDIN_ACCESS_TOKEN"}
+              {platform === "youtube" ? "YOUTUBE_API_KEY" : "X_API_BEARER_TOKEN"}
             </strong>{" "}
             in <code className="rounded bg-muted px-1.5 py-0.5 text-xs">.env.local</code>, then
             restart <code className="rounded bg-muted px-1.5 py-0.5 text-xs">npm run dev</code>.

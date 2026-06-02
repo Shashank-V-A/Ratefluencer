@@ -7,7 +7,7 @@ create extension if not exists vector;
 
 create table if not exists public.analysis_cache (
   id uuid primary key default gen_random_uuid(),
-  platform text not null check (platform in ('youtube', 'x', 'linkedin')),
+  platform text not null check (platform in ('youtube', 'x')),
   handle text not null,
   result jsonb not null,
   model_version text not null,

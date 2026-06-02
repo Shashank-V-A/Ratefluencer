@@ -1,4 +1,4 @@
-export type Platform = "linkedin" | "youtube" | "x";
+export type Platform = "youtube" | "x";
 
 export interface AnalysisMeta {
   source: "live";

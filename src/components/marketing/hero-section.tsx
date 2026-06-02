@@ -49,7 +49,7 @@ export function HeroSection() {
             variants={fade}
             className="mt-5 max-w-lg text-base leading-relaxed text-muted-foreground md:text-lg"
           >
-            Live data from YouTube, X, and LinkedIn powers authenticity,
+            Live data from YouTube and X powers authenticity,
             growth, brand fit, and your Ratefluencer Score — in seconds.
           </motion.p>
 

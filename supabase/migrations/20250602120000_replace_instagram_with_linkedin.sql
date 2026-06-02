@@ -1,11 +1,10 @@
--- Replace instagram platform with linkedin in cache constraint
+-- Drop linkedin from platform enum (YouTube + X only)
 alter table public.analysis_cache
   drop constraint if exists analysis_cache_platform_check;
 
 alter table public.analysis_cache
   add constraint analysis_cache_platform_check
-  check (platform in ('youtube', 'x', 'linkedin'));
+  check (platform in ('youtube', 'x'));
 
-update public.analysis_cache
-  set platform = 'linkedin'
-  where platform = 'instagram';
+delete from public.analysis_cache
+  where platform not in ('youtube', 'x');
