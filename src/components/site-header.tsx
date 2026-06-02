@@ -50,10 +50,15 @@ export function SiteHeader() {
         </nav>
 
         <Link
-          href="/analyze"
-          className="btn-primary-glow rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground"
+          href="/"
+          className={cn(
+            "rounded-full px-5 py-2 text-sm font-semibold transition-all duration-200",
+            pathname === "/"
+              ? "bg-primary text-primary-foreground shadow-sm"
+              : "border border-border bg-white text-foreground hover:bg-muted/60"
+          )}
         >
-          Analyze
+          Home
         </Link>
       </div>
     </header>

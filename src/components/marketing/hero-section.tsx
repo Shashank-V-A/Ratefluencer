@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { HeroPreview } from "./hero-preview";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
@@ -20,33 +20,22 @@ export function HeroSection() {
   return (
     <section className="relative isolate overflow-hidden px-6 pb-24 pt-10 md:pb-32 md:pt-16">
       <div
-        className="hero-blob -left-20 top-0 h-72 w-72 bg-emerald-200/60"
+        className="hero-blob -left-20 top-0 h-72 w-72 bg-orange-200/60"
         aria-hidden
       />
       <div
-        className="hero-blob right-0 top-20 h-64 w-64 bg-teal-100/80"
+        className="hero-blob right-0 top-20 h-64 w-64 bg-amber-100/80"
         aria-hidden
       />
 
       <div className="relative z-10 mx-auto grid max-w-6xl items-center gap-14 lg:grid-cols-2 lg:gap-16">
         <div className="min-w-0">
-          <motion.div
+          <motion.h1
             custom={0}
             initial="hidden"
             animate="show"
             variants={fade}
-            className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-accent/80 px-3 py-1 text-xs font-medium text-accent-foreground"
-          >
-            <Sparkles className="h-3.5 w-3.5 text-primary" />
-            AI influencer intelligence
-          </motion.div>
-
-          <motion.h1
-            custom={1}
-            initial="hidden"
-            animate="show"
-            variants={fade}
-            className="font-display mt-6 max-w-xl text-4xl leading-[1.1] text-foreground md:text-[3.25rem]"
+            className="font-display max-w-xl text-4xl leading-[1.1] text-foreground md:text-[3.25rem]"
           >
             Rank creators by{" "}
             <span className="text-gradient-brand">business impact</span>, not
@@ -54,7 +43,7 @@ export function HeroSection() {
           </motion.h1>
 
           <motion.p
-            custom={2}
+            custom={1}
             initial="hidden"
             animate="show"
             variants={fade}
@@ -65,7 +54,7 @@ export function HeroSection() {
           </motion.p>
 
           <motion.div
-            custom={3}
+            custom={2}
             initial="hidden"
             animate="show"
             variants={fade}
@@ -87,7 +76,7 @@ export function HeroSection() {
           </motion.div>
 
           <motion.dl
-            custom={4}
+            custom={3}
             initial="hidden"
             animate="show"
             variants={fade}

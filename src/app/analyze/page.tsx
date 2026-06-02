@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { GlassPanel, PageShell, PageTitle } from "@/components/ui/page-shell";
 import { Loader2, Search } from "lucide-react";
+import Image from "next/image";
 
 const EXAMPLES: Partial<Record<Platform, string>> = {
   youtube: "mkbhd",
@@ -171,20 +172,42 @@ export default function AnalyzePage() {
                 size={140}
                 label="RankMint™"
               />
-              <div className="flex-1 text-center sm:text-left">
-                <h2 className="font-display text-2xl tracking-tight">
-                  {result.profile.displayName}
-                </h2>
-                <p className="mt-1 text-muted-foreground">
-                  @{result.profile.handle} ·{" "}
-                  <span className="capitalize">{result.profile.platform}</span>
-                </p>
-                <Link
-                  href={reportHref}
-                  className="mt-4 inline-flex text-sm font-medium text-primary transition-colors hover:text-primary/80"
-                >
-                  View full intelligence report →
-                </Link>
+              <div className="flex flex-1 flex-col items-center gap-4 sm:flex-row sm:items-start">
+                {result.meta?.avatarUrl ? (
+                  <Image
+                    src={result.meta.avatarUrl}
+                    alt=""
+                    width={72}
+                    height={72}
+                    className="h-[72px] w-[72px] shrink-0 rounded-2xl border border-border object-cover shadow-sm"
+                    unoptimized
+                  />
+                ) : (
+                  <div
+                    className={`flex h-[72px] w-[72px] shrink-0 items-center justify-center rounded-2xl border border-border bg-gradient-to-br text-lg font-semibold shadow-sm ${result.profile.avatarGradient}`}
+                  >
+                    {result.profile.displayName
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")
+                      .slice(0, 2)}
+                  </div>
+                )}
+                <div className="min-w-0 flex-1 text-center sm:text-left">
+                  <h2 className="font-display text-2xl tracking-tight">
+                    {result.profile.displayName}
+                  </h2>
+                  <p className="mt-1 text-muted-foreground">
+                    @{result.profile.handle} ·{" "}
+                    <span className="capitalize">{result.profile.platform}</span>
+                  </p>
+                  <Link
+                    href={reportHref}
+                    className="mt-4 inline-flex text-sm font-medium text-primary transition-colors hover:text-primary/80"
+                  >
+                    View full intelligence report →
+                  </Link>
+                </div>
               </div>
             </div>
             <div className="mt-8 border-t border-border pt-8">

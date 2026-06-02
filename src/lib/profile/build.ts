@@ -15,9 +15,9 @@ function daysAgo(iso: string): number {
 function hashGradient(handle: string): string {
   const gradients = [
     "from-rose-400 via-orange-300 to-amber-200",
-    "from-amber-300 via-yellow-200 to-lime-200",
+    "from-amber-300 via-orange-200 to-yellow-100",
     "from-indigo-400 via-violet-400 to-fuchsia-300",
-    "from-emerald-400 via-teal-300 to-cyan-200",
+    "from-orange-400 via-amber-300 to-orange-200",
     "from-fuchsia-500 via-pink-400 to-rose-300",
   ];
   let h = 0;

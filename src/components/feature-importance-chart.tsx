@@ -30,7 +30,7 @@ export function FeatureImportanceChart({
           <Tooltip
             contentStyle={{
               background: "oklch(1 0 0)",
-              border: "1px solid oklch(0.91 0.012 155)",
+              border: "1px solid oklch(0.91 0.015 65)",
               borderRadius: 8,
               fontSize: 12,
               color: "oklch(0.22 0.02 260)",
@@ -38,7 +38,7 @@ export function FeatureImportanceChart({
             }}
             formatter={(v) => [`${v}%`, "Impact"]}
           />
-          <Bar dataKey="impact" fill="oklch(0.52 0.14 162)" radius={[0, 4, 4, 0]} />
+          <Bar dataKey="impact" fill="oklch(0.65 0.15 58)" radius={[0, 4, 4, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </div>

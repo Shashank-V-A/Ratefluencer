@@ -42,7 +42,7 @@ export function HeroPreview() {
             </div>
             <div className="h-2 overflow-hidden rounded-full bg-muted">
               <motion.div
-                className="h-full rounded-full bg-gradient-to-r from-primary to-emerald-400"
+                className="h-full rounded-full bg-gradient-to-r from-primary to-orange-300"
                 initial={{ width: 0 }}
                 animate={{ width: `${m.value}%` }}
                 transition={{

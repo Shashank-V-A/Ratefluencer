@@ -5,6 +5,7 @@ import {
   PDFDocument,
   StandardFonts,
   rgb,
+  type PDFImage,
   type PDFPage,
   type PDFFont,
 } from "pdf-lib";
@@ -12,16 +13,20 @@ import {
 const PAGE_W = 612;
 const PAGE_H = 792;
 const MARGIN = 48;
+const HEADER_H = 118;
 
-/** Match site theme: black + radium green */
-const BG = rgb(0.03, 0.05, 0.04);
-const HEADER = rgb(0.05, 0.08, 0.06);
-const CARD = rgb(0.07, 0.1, 0.08);
-const TRACK = rgb(0.12, 0.16, 0.13);
-const RADIUM = rgb(0.72, 0.96, 0.38);
-const TEXT = rgb(0.94, 0.97, 0.92);
-const MUTED = rgb(0.62, 0.7, 0.64);
-const BORDER = rgb(0.72, 0.96, 0.38);
+/** Light theme — matches site orange palette */
+const PAGE_BG = rgb(0.99, 0.98, 0.97);
+const SURFACE = rgb(1, 1, 1);
+const SURFACE_MUTED = rgb(0.97, 0.96, 0.95);
+const HEADER_BG = rgb(1, 0.96, 0.92);
+const BORDER = rgb(0.9, 0.87, 0.84);
+const ACCENT = rgb(0.82, 0.42, 0.18);
+const ACCENT_SOFT = rgb(0.96, 0.72, 0.48);
+const BAR_FILL = rgb(0.91, 0.52, 0.26);
+const BAR_TRACK = rgb(0.94, 0.92, 0.9);
+const TEXT = rgb(0.18, 0.16, 0.15);
+const MUTED = rgb(0.48, 0.45, 0.42);
 
 type Ctx = {
   pdf: PDFDocument;
@@ -30,338 +35,354 @@ type Ctx = {
   bold: PDFFont;
   y: number;
   contentWidth: number;
+  pageIndex: number;
 };
 
 function fillPage(page: PDFPage) {
-  page.drawRectangle({ x: 0, y: 0, width: PAGE_W, height: PAGE_H, color: BG });
+  page.drawRectangle({ x: 0, y: 0, width: PAGE_W, height: PAGE_H, color: PAGE_BG });
 }
 
-function wrapText(text: string, maxChars: number): string[] {
-  const words = text.split(/\s+/);
-  const lines: string[] = [];
-  let line = "";
-  for (const word of words) {
-    const next = line ? `${line} ${word}` : word;
-    if (next.length > maxChars) {
-      if (line) lines.push(line);
-      line = word;
-    } else {
-      line = next;
+function drawCard(
+  page: PDFPage,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  fill = SURFACE
+) {
+  page.drawRectangle({
+    x,
+    y: y - h,
+    width: w,
+    height: h,
+    color: fill,
+    borderColor: BORDER,
+    borderWidth: 0.75,
+  });
+}
+
+async function embedAvatar(
+  pdf: PDFDocument,
+  url: string | undefined
+): Promise<PDFImage | null> {
+  if (!url) return null;
+  try {
+    const res = await fetch(url, { signal: AbortSignal.timeout(10_000) });
+    if (!res.ok) return null;
+    const bytes = new Uint8Array(await res.arrayBuffer());
+    const type = (res.headers.get("content-type") ?? url).toLowerCase();
+    if (type.includes("png")) return pdf.embedPng(bytes);
+    try {
+      return await pdf.embedJpg(bytes);
+    } catch {
+      return pdf.embedPng(bytes);
     }
+  } catch {
+    return null;
   }
-  if (line) lines.push(line);
-  return lines;
 }
 
-function ensureSpace(ctx: Ctx, needed: number) {
-  if (ctx.y - needed >= MARGIN) return;
+function drawAvatarPlaceholder(
+  page: PDFPage,
+  x: number,
+  y: number,
+  size: number,
+  initials: string,
+  bold: PDFFont
+) {
+  page.drawRectangle({
+    x,
+    y: y - size,
+    width: size,
+    height: size,
+    color: ACCENT_SOFT,
+    borderColor: BORDER,
+    borderWidth: 0.75,
+  });
+  const t = initials.slice(0, 2).toUpperCase();
+  const tw = bold.widthOfTextAtSize(t, 18);
+  page.drawText(t, {
+    x: x + (size - tw) / 2,
+    y: y - size / 2 - 6,
+    size: 18,
+    font: bold,
+    color: ACCENT,
+  });
+}
+
+function drawPageFooter(ctx: Ctx, modelVersion: string, totalPages: number) {
+  const { page, font } = ctx;
+  const footerY = 32;
+  const stamp =
+    new Date().toISOString().slice(0, 19).replace("T", " ") + " UTC";
+
+  page.drawLine({
+    start: { x: MARGIN, y: footerY + 14 },
+    end: { x: PAGE_W - MARGIN, y: footerY + 14 },
+    thickness: 0.5,
+    color: BORDER,
+  });
+
+  page.drawText("RankMint · Influencer Intelligence", {
+    x: MARGIN,
+    y: footerY,
+    size: 7,
+    font,
+    color: MUTED,
+  });
+
+  page.drawText(`Model ${modelVersion}`, {
+    x: MARGIN,
+    y: footerY - 10,
+    size: 7,
+    font,
+    color: MUTED,
+  });
+
+  const pageLabel = `Page ${ctx.pageIndex} of ${totalPages}`;
+  const pw = font.widthOfTextAtSize(pageLabel, 7);
+  page.drawText(pageLabel, {
+    x: PAGE_W - MARGIN - pw,
+    y: footerY,
+    size: 7,
+    font,
+    color: MUTED,
+  });
+
+  const gen = `Generated ${stamp}`;
+  const gw = font.widthOfTextAtSize(gen, 7);
+  page.drawText(gen, {
+    x: PAGE_W - MARGIN - gw,
+    y: footerY - 10,
+    size: 7,
+    font,
+    color: MUTED,
+  });
+}
+
+function newPage(ctx: Ctx) {
   const page = ctx.pdf.addPage([PAGE_W, PAGE_H]);
   fillPage(page);
   ctx.page = page;
-  ctx.y = PAGE_H - MARGIN;
+  ctx.pageIndex += 1;
+  ctx.y = PAGE_H - MARGIN - 8;
 }
 
-function drawSectionTitle(ctx: Ctx, title: string) {
-  ensureSpace(ctx, 28);
-  const { page, bold, y } = ctx;
+function ensureSpace(ctx: Ctx, needed: number) {
+  const floor = 56;
+  if (ctx.y - needed >= floor) return;
+  newPage(ctx);
+}
+
+function drawSectionTitle(ctx: Ctx, title: string, subtitle?: string) {
+  ensureSpace(ctx, subtitle ? 40 : 28);
+  const { page, bold, font } = ctx;
+
   page.drawText(title, {
     x: MARGIN,
     y: ctx.y,
-    size: 12,
+    size: 13,
     font: bold,
     color: TEXT,
   });
-  ctx.y = y - 6;
-  page.drawLine({
-    start: { x: MARGIN, y: ctx.y },
-    end: { x: MARGIN + ctx.contentWidth, y: ctx.y },
-    thickness: 0.5,
-    color: BORDER,
+  ctx.y -= subtitle ? 16 : 12;
+
+  if (subtitle) {
+    page.drawText(subtitle, {
+      x: MARGIN,
+      y: ctx.y,
+      size: 8,
+      font,
+      color: MUTED,
+    });
+    ctx.y -= 14;
+  }
+
+  page.drawRectangle({
+    x: MARGIN,
+    y: ctx.y - 2,
+    width: 48,
+    height: 2.5,
+    color: ACCENT,
   });
   ctx.y -= 18;
 }
 
-function drawLabelValue(
-  ctx: Ctx,
-  x: number,
-  y: number,
-  label: string,
-  value: string,
-  valueSize = 13
-) {
-  const { page, font, bold } = ctx;
-  page.drawText(label, { x, y, size: 8, font, color: MUTED });
-  page.drawText(value, {
-    x,
-    y: y - 15,
-    size: valueSize,
-    font: bold,
-    color: TEXT,
-  });
-}
-
-function drawMetricGrid(
-  ctx: Ctx,
-  metrics: { label: string; value: string }[]
-) {
-  ensureSpace(ctx, 72);
+function drawMetricGrid(ctx: Ctx, metrics: { label: string; value: string }[]) {
+  ensureSpace(ctx, 88);
   const { page } = ctx;
-  const boxH = 68;
+  const boxH = 76;
   const yTop = ctx.y;
 
-  page.drawRectangle({
-    x: MARGIN,
-    y: yTop - boxH,
-    width: ctx.contentWidth,
-    height: boxH,
-    color: CARD,
-    borderColor: BORDER,
-    borderWidth: 0.5,
-  });
+  drawCard(page, MARGIN, yTop, ctx.contentWidth, boxH);
 
   const colW = ctx.contentWidth / 2;
-  const row1Y = yTop - 22;
-  const row2Y = yTop - 48;
+  const pad = 18;
+  const row1Y = yTop - 28;
+  const row2Y = yTop - 54;
 
-  drawLabelValue(ctx, MARGIN + 14, row1Y, metrics[0]!.label, metrics[0]!.value);
-  drawLabelValue(
-    ctx,
-    MARGIN + 14 + colW,
-    row1Y,
-    metrics[1]!.label,
-    metrics[1]!.value
-  );
-  drawLabelValue(ctx, MARGIN + 14, row2Y, metrics[2]!.label, metrics[2]!.value);
-  drawLabelValue(
-    ctx,
-    MARGIN + 14 + colW,
-    row2Y,
-    metrics[3]!.label,
-    metrics[3]!.value
-  );
+  const drawCell = (x: number, y: number, label: string, value: string) => {
+    page.drawText(label, { x, y, size: 8, font: ctx.font, color: MUTED });
+    page.drawText(value, {
+      x,
+      y: y - 16,
+      size: 14,
+      font: ctx.bold,
+      color: TEXT,
+    });
+  };
+
+  drawCell(MARGIN + pad, row1Y, metrics[0]!.label, metrics[0]!.value);
+  drawCell(MARGIN + pad + colW, row1Y, metrics[1]!.label, metrics[1]!.value);
+  drawCell(MARGIN + pad, row2Y, metrics[2]!.label, metrics[2]!.value);
+  drawCell(MARGIN + pad + colW, row2Y, metrics[3]!.label, metrics[3]!.value);
 
   ctx.y = yTop - boxH - 20;
 }
 
-function drawBarRows(
-  ctx: Ctx,
-  items: { label: string; value: number; max?: number }[]
-) {
-  const LABEL_W = 148;
-  const VALUE_W = 32;
-  const BAR_X = MARGIN + LABEL_W;
-  const BAR_W = ctx.contentWidth - LABEL_W - VALUE_W;
-  const ROW_H = 24;
-  const needed = items.length * ROW_H + 8;
-
-  ensureSpace(ctx, needed);
-
+function drawScoreHero(ctx: Ctx, analysis: AnalysisResult) {
+  ensureSpace(ctx, 96);
   const { page, font, bold } = ctx;
-
-  for (const item of items) {
-    const max = item.max ?? 100;
-    const pct = Math.min(1, Math.max(0, item.value / max));
-    const barFill = BAR_W * pct;
-    const rowY = ctx.y;
-
-    page.drawText(item.label.slice(0, 26), {
-      x: MARGIN,
-      y: rowY - 11,
-      size: 9,
-      font,
-      color: MUTED,
-    });
-
-    page.drawRectangle({
-      x: BAR_X,
-      y: rowY - 14,
-      width: BAR_W,
-      height: 11,
-      color: TRACK,
-    });
-
-    if (barFill > 0) {
-      page.drawRectangle({
-        x: BAR_X,
-        y: rowY - 14,
-        width: barFill,
-        height: 11,
-        color: RADIUM,
-      });
-    }
-
-    const valStr =
-      max === 100 && item.label.includes("%")
-        ? `${item.value}%`
-        : String(item.value);
-    const valX = BAR_X + BAR_W + 8;
-    page.drawText(valStr, {
-      x: valX,
-      y: rowY - 11,
-      size: 9,
-      font: bold,
-      color: TEXT,
-    });
-
-    ctx.y -= ROW_H;
-  }
-
-  ctx.y -= 8;
-}
-
-function drawHeader(ctx: Ctx, analysis: AnalysisResult) {
-  const { page, font, bold } = ctx;
-  const { profile } = analysis;
-  const tier = analysis.creatorTier ?? "mid";
-
-  page.drawRectangle({
-    x: 0,
-    y: PAGE_H - 88,
-    width: PAGE_W,
-    height: 88,
-    color: HEADER,
-  });
-
-  page.drawLine({
-    start: { x: 0, y: PAGE_H - 88 },
-    end: { x: PAGE_W, y: PAGE_H - 88 },
-    thickness: 1,
-    color: BORDER,
-  });
-
-  page.drawText("RankMint Intelligence Report", {
-    x: MARGIN,
-    y: PAGE_H - 38,
-    size: 18,
-    font: bold,
-    color: RADIUM,
-  });
-
-  page.drawText(
-    `${profile.displayName}  ·  @${profile.handle}  ·  ${profile.platform}`,
-    {
-      x: MARGIN,
-      y: PAGE_H - 58,
-      size: 10,
-      font,
-      color: TEXT,
-    }
-  );
-
-  page.drawText(tierLabel(tier), {
-    x: MARGIN,
-    y: PAGE_H - 74,
-    size: 9,
-    font: bold,
-    color: MUTED,
-  });
-
-  ctx.y = PAGE_H - 108;
-}
-
-function drawRankMintHero(ctx: Ctx, analysis: AnalysisResult) {
   const { scores } = analysis;
-  ensureSpace(ctx, 78);
-  const { page, font, bold } = ctx;
-  const boxH = 64;
+  const boxH = 88;
   const yTop = ctx.y;
+
+  drawCard(page, MARGIN, yTop, ctx.contentWidth, boxH, HEADER_BG);
 
   page.drawRectangle({
     x: MARGIN,
     y: yTop - boxH,
-    width: ctx.contentWidth,
+    width: 4,
     height: boxH,
-    color: CARD,
-    borderColor: BORDER,
-    borderWidth: 0.5,
+    color: ACCENT,
   });
 
-  page.drawText("RankMint™", {
-    x: MARGIN + 16,
-    y: yTop - 26,
-    size: 10,
+  page.drawText("RankMint™ Score", {
+    x: MARGIN + 20,
+    y: yTop - 28,
+    size: 9,
     font,
     color: MUTED,
   });
 
   page.drawText(String(scores.rankMint), {
-    x: MARGIN + 16,
-    y: yTop - 50,
-    size: 28,
+    x: MARGIN + 20,
+    y: yTop - 62,
+    size: 36,
     font: bold,
-    color: RADIUM,
+    color: ACCENT,
+  });
+
+  page.drawText("out of 100", {
+    x: MARGIN + 20,
+    y: yTop - 76,
+    size: 8,
+    font,
+    color: MUTED,
+  });
+
+  const midX = MARGIN + ctx.contentWidth * 0.42;
+  page.drawLine({
+    start: { x: midX, y: yTop - 16 },
+    end: { x: midX, y: yTop - boxH + 16 },
+    thickness: 0.5,
+    color: BORDER,
   });
 
   page.drawText("Campaign success estimate", {
-    x: MARGIN + 120,
-    y: yTop - 26,
+    x: midX + 20,
+    y: yTop - 28,
     size: 9,
     font,
     color: MUTED,
   });
 
   page.drawText(`${scores.campaignSuccessProbability}%`, {
-    x: MARGIN + 120,
-    y: yTop - 48,
-    size: 20,
+    x: midX + 20,
+    y: yTop - 58,
+    size: 28,
     font: bold,
     color: TEXT,
   });
 
-  if (
-    analysis.rawRankMint != null &&
-    analysis.rawRankMint !== scores.rankMint
-  ) {
-    page.drawText(`Uncalibrated model: ${analysis.rawRankMint}`, {
-      x: MARGIN + 280,
-      y: yTop - 40,
-      size: 8,
-      font,
-      color: MUTED,
-    });
-  }
+  page.drawText("Modeled from trained logistic regression", {
+    x: midX + 20,
+    y: yTop - 74,
+    size: 7,
+    font,
+    color: MUTED,
+  });
 
   ctx.y = yTop - boxH - 22;
 }
 
-function drawGrowthForecast(ctx: Ctx, analysis: AnalysisResult) {
-  drawSectionTitle(ctx, "Growth forecast (90 days, modeled)");
-  const g = analysis.growthForecast;
-  ensureSpace(ctx, 56);
+function drawBarRows(
+  ctx: Ctx,
+  items: { label: string; value: number; max?: number }[]
+) {
+  const LABEL_W = 152;
+  const VALUE_W = 36;
+  const BAR_X = MARGIN + LABEL_W;
+  const BAR_W = ctx.contentWidth - LABEL_W - VALUE_W;
+  const ROW_H = 26;
+  const cardPad = 14;
+  const cardH = items.length * ROW_H + cardPad * 2;
+
+  ensureSpace(ctx, cardH + 8);
+
   const { page, font, bold } = ctx;
-  const boxH = 48;
   const yTop = ctx.y;
-  const colW = ctx.contentWidth / 3;
+  drawCard(page, MARGIN, yTop, ctx.contentWidth, cardH, SURFACE_MUTED);
 
-  page.drawRectangle({
-    x: MARGIN,
-    y: yTop - boxH,
-    width: ctx.contentWidth,
-    height: boxH,
-    color: CARD,
-    borderColor: BORDER,
-    borderWidth: 0.5,
-  });
+  let rowY = yTop - cardPad - 10;
 
-  const items = [
-    { label: "Follower growth", value: `+${g.followerGrowth90d}%` },
-    { label: "Engagement growth", value: `+${g.engagementGrowth90d}%` },
-    { label: "Audience expansion", value: `+${g.audienceExpansion}%` },
-  ];
+  for (const item of items) {
+    const max = item.max ?? 100;
+    const pct = Math.min(1, Math.max(0, item.value / max));
+    const barFill = Math.max(2, BAR_W * pct);
 
-  items.forEach((item, i) => {
-    const x = MARGIN + 14 + i * colW;
-    page.drawText(item.label, { x, y: yTop - 18, size: 8, font, color: MUTED });
-    page.drawText(item.value, {
-      x,
-      y: yTop - 36,
-      size: 14,
+    page.drawText(item.label.slice(0, 28), {
+      x: MARGIN + 12,
+      y: rowY - 10,
+      size: 9,
       font: bold,
-      color: RADIUM,
+      color: TEXT,
     });
-  });
 
-  ctx.y = yTop - boxH - 20;
+    page.drawRectangle({
+      x: BAR_X,
+      y: rowY - 13,
+      width: BAR_W,
+      height: 10,
+      color: BAR_TRACK,
+      borderColor: BORDER,
+      borderWidth: 0.25,
+    });
+
+    if (pct > 0) {
+      page.drawRectangle({
+        x: BAR_X,
+        y: rowY - 13,
+        width: barFill,
+        height: 10,
+        color: BAR_FILL,
+      });
+    }
+
+    const valStr = String(item.value);
+    const valW = bold.widthOfTextAtSize(valStr, 10);
+    page.drawText(valStr, {
+      x: BAR_X + BAR_W + (VALUE_W - valW) / 2,
+      y: rowY - 10,
+      size: 10,
+      font: bold,
+      color: ACCENT,
+    });
+
+    rowY -= ROW_H;
+  }
+
+  ctx.y = yTop - cardH - 16;
 }
 
 function drawBrandMatches(ctx: Ctx, analysis: AnalysisResult) {
@@ -374,67 +395,109 @@ function drawBrandMatches(ctx: Ctx, analysis: AnalysisResult) {
 
   if (!brands.length) return;
 
-  drawSectionTitle(ctx, "Top brand matches");
-  ensureSpace(ctx, brands.length * 18 + 8);
-  const { page, font, bold } = ctx;
+  drawSectionTitle(
+    ctx,
+    "Top brand partnerships",
+    "Semantic match scores from your brand catalog"
+  );
+
+  const cardH = 52;
+  const gap = 10;
 
   for (const rec of brands.slice(0, 5)) {
-    page.drawText(rec.brand.name, {
+    ensureSpace(ctx, cardH + gap);
+    const { page, font, bold } = ctx;
+    const yTop = ctx.y;
+
+    drawCard(page, MARGIN, yTop, ctx.contentWidth, cardH);
+
+    page.drawRectangle({
       x: MARGIN,
-      y: ctx.y - 10,
-      size: 10,
+      y: yTop - cardH,
+      width: 4,
+      height: cardH,
+      color: ACCENT_SOFT,
+    });
+
+    page.drawText(rec.brand.name, {
+      x: MARGIN + 16,
+      y: yTop - 22,
+      size: 12,
       font: bold,
       color: TEXT,
     });
-    const scoreStr = `${rec.score}%`;
-    const scoreW = bold.widthOfTextAtSize(scoreStr, 10);
-    page.drawText(scoreStr, {
-      x: MARGIN + ctx.contentWidth - scoreW,
-      y: ctx.y - 10,
-      size: 10,
-      font: bold,
-      color: RADIUM,
-    });
+
     page.drawText(rec.brand.category, {
-      x: MARGIN + 160,
-      y: ctx.y - 10,
+      x: MARGIN + 16,
+      y: yTop - 38,
       size: 9,
       font,
       color: MUTED,
     });
-    ctx.y -= 18;
-  }
 
-  ctx.y -= 8;
+    const rationale = rec.rationale.slice(0, 72);
+    page.drawText(
+      rationale + (rec.rationale.length > 72 ? "…" : ""),
+      {
+        x: MARGIN + 16,
+        y: yTop - 48,
+        size: 7,
+        font,
+        color: MUTED,
+      }
+    );
+
+    const scoreStr = `${rec.score}%`;
+    const scoreW = bold.widthOfTextAtSize(scoreStr, 16);
+    page.drawText("match", {
+      x: PAGE_W - MARGIN - 16 - scoreW,
+      y: yTop - 20,
+      size: 7,
+      font,
+      color: MUTED,
+    });
+    page.drawText(scoreStr, {
+      x: PAGE_W - MARGIN - 16 - scoreW,
+      y: yTop - 38,
+      size: 16,
+      font: bold,
+      color: ACCENT,
+    });
+
+    ctx.y = yTop - cardH - gap;
+  }
 }
 
-function drawFooter(ctx: Ctx, modelVersion: string) {
-  ensureSpace(ctx, 36);
-  const { page, font } = ctx;
-  const stamp = new Date().toISOString().slice(0, 19).replace("T", " ") + " UTC";
+function drawGrowthForecast(ctx: Ctx, analysis: AnalysisResult) {
+  drawSectionTitle(ctx, "Growth forecast", "90-day modeled projection");
+  const g = analysis.growthForecast;
+  ensureSpace(ctx, 68);
+  const { page, font, bold } = ctx;
+  const boxH = 56;
+  const yTop = ctx.y;
+  const colW = ctx.contentWidth / 3;
 
-  page.drawLine({
-    start: { x: MARGIN, y: ctx.y },
-    end: { x: MARGIN + ctx.contentWidth, y: ctx.y },
-    thickness: 0.5,
-    color: TRACK,
-  });
-  ctx.y -= 14;
+  drawCard(page, MARGIN, yTop, ctx.contentWidth, boxH);
 
-  page.drawText(`Model: ${modelVersion}`, {
-    x: MARGIN,
-    y: ctx.y,
-    size: 8,
-    font,
-    color: MUTED,
+  const items = [
+    { label: "Follower growth", value: `+${g.followerGrowth90d}%` },
+    { label: "Engagement growth", value: `+${g.engagementGrowth90d}%` },
+    { label: "Audience expansion", value: `+${g.audienceExpansion}%` },
+  ];
+
+  items.forEach((item, i) => {
+    const x = MARGIN + 16 + i * colW;
+    page.drawText(item.label, { x, y: yTop - 20, size: 8, font, color: MUTED });
+    page.drawText(item.value, {
+      x,
+      y: yTop - 40,
+      size: 16,
+      font: bold,
+      color: ACCENT,
+    });
   });
-  page.drawText(`Generated ${stamp}`, {
-    x: MARGIN,
-    y: ctx.y - 11,
-    size: 8,
-    font,
-    color: MUTED,
-  });
+
+  ctx.y = yTop - boxH - 20;
 }
 
 function drawDemographics(ctx: Ctx, analysis: AnalysisResult) {
@@ -443,9 +506,8 @@ function drawDemographics(ctx: Ctx, analysis: AnalysisResult) {
 
   drawSectionTitle(
     ctx,
-    d.source === "api"
-      ? "Audience demographics (platform API)"
-      : "Audience demographics (inferred)"
+    "Audience demographics",
+    d.source === "api" ? "From platform insights" : "Inferred from public signals"
   );
 
   const ageItems =
@@ -469,7 +531,7 @@ function drawDemographics(ctx: Ctx, analysis: AnalysisResult) {
 
   const countryItems =
     d.topCountries?.slice(0, 4).map((c) => ({
-      label: c.country.slice(0, 20),
+      label: c.country.slice(0, 22),
       value: c.percent,
     })) ?? [];
 
@@ -487,14 +549,183 @@ function drawDemographics(ctx: Ctx, analysis: AnalysisResult) {
   }
 
   if (d.genderSplit) {
-    ensureSpace(ctx, 36);
+    ensureSpace(ctx, 40);
     const g = d.genderSplit;
-    ctx.page.drawText(
-      `Gender (est.): Female ${g.female}% · Male ${g.male}% · Other ${g.other}%`,
-      { x: MARGIN, y: ctx.y - 10, size: 8, font: ctx.font, color: TEXT }
+    const { page, font } = ctx;
+    const boxH = 32;
+    const yTop = ctx.y;
+    drawCard(page, MARGIN, yTop, ctx.contentWidth, boxH, SURFACE_MUTED);
+    page.drawText(
+      `Gender estimate — Female ${g.female}% · Male ${g.male}% · Other ${g.other}%`,
+      {
+        x: MARGIN + 14,
+        y: yTop - 20,
+        size: 9,
+        font,
+        color: TEXT,
+      }
     );
-    ctx.y -= 24;
+    ctx.y = yTop - boxH - 16;
   }
+}
+
+function drawAuthenticityFlags(ctx: Ctx, analysis: AnalysisResult) {
+  const flags = analysis.authenticityFlags;
+  const entries = [
+    { key: "purchasedFollowers", label: "Purchased followers" },
+    { key: "engagementPods", label: "Engagement pods" },
+    { key: "botActivity", label: "Bot activity" },
+    { key: "artificialSpikes", label: "Artificial spikes" },
+  ] as const;
+
+  drawSectionTitle(
+    ctx,
+    "Authenticity",
+    `Score ${analysis.scores.authenticity} / 100`
+  );
+
+  ensureSpace(ctx, 72);
+  const { page, font, bold } = ctx;
+  const boxH = 64;
+  const yTop = ctx.y;
+  drawCard(page, MARGIN, yTop, ctx.contentWidth, boxH, SURFACE_MUTED);
+
+  const colW = ctx.contentWidth / 2;
+  entries.forEach((e, i) => {
+    const risk = flags[e.key];
+    const x = MARGIN + 14 + (i % 2) * colW;
+    const y = yTop - 22 - Math.floor(i / 2) * 22;
+    const riskColor =
+      risk === "high"
+        ? rgb(0.75, 0.22, 0.18)
+        : risk === "medium"
+          ? rgb(0.75, 0.5, 0.15)
+          : rgb(0.35, 0.55, 0.35);
+    page.drawText(e.label, { x, y, size: 8, font, color: MUTED });
+    const riskW = bold.widthOfTextAtSize(risk, 9);
+    page.drawText(risk, {
+      x: x + 120,
+      y,
+      size: 9,
+      font: bold,
+      color: riskColor,
+    });
+  });
+
+  ctx.y = yTop - boxH - 20;
+}
+
+async function drawHeader(
+  ctx: Ctx,
+  analysis: AnalysisResult,
+  avatar: PDFImage | null
+) {
+  const { page, font, bold } = ctx;
+  const { profile } = analysis;
+  const tier = analysis.creatorTier ?? "mid";
+  const AVATAR = 64;
+  const avatarX = MARGIN + 20;
+  const avatarY = PAGE_H - 24;
+
+  page.drawRectangle({
+    x: 0,
+    y: PAGE_H - HEADER_H,
+    width: PAGE_W,
+    height: HEADER_H,
+    color: HEADER_BG,
+  });
+
+  page.drawRectangle({
+    x: 0,
+    y: PAGE_H - HEADER_H,
+    width: PAGE_W,
+    height: 3,
+    color: ACCENT,
+  });
+
+  if (avatar) {
+    const scale = AVATAR / Math.max(avatar.width, avatar.height);
+    const w = avatar.width * scale;
+    const h = avatar.height * scale;
+    page.drawImage(avatar, {
+      x: avatarX + (AVATAR - w) / 2,
+      y: avatarY - AVATAR + (AVATAR - h) / 2,
+      width: w,
+      height: h,
+    });
+    page.drawRectangle({
+      x: avatarX - 1,
+      y: avatarY - AVATAR - 1,
+      width: AVATAR + 2,
+      height: AVATAR + 2,
+      borderColor: BORDER,
+      borderWidth: 1,
+    });
+  } else {
+    const initials = profile.displayName
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .slice(0, 2);
+    drawAvatarPlaceholder(page, avatarX, avatarY, AVATAR, initials, bold);
+  }
+
+  const textX = avatarX + AVATAR + 18;
+  page.drawText("RankMint", {
+    x: textX,
+    y: PAGE_H - 36,
+    size: 10,
+    font: bold,
+    color: ACCENT,
+  });
+  page.drawText("Intelligence Report", {
+    x: textX,
+    y: PAGE_H - 50,
+    size: 8,
+    font,
+    color: MUTED,
+  });
+
+  const nameSize = profile.displayName.length > 22 ? 16 : 20;
+  page.drawText(profile.displayName, {
+    x: textX,
+    y: PAGE_H - 74,
+    size: nameSize,
+    font: bold,
+    color: TEXT,
+  });
+
+  page.drawText(
+    `@${profile.handle}  ·  ${profile.platform}  ·  ${tierLabel(tier)}`,
+    {
+      x: textX,
+      y: PAGE_H - 92,
+      size: 9,
+      font,
+      color: MUTED,
+    }
+  );
+
+  const badge = "LIVE API DATA";
+  const bw = bold.widthOfTextAtSize(badge, 7);
+  page.drawRectangle({
+    x: PAGE_W - MARGIN - bw - 16,
+    y: PAGE_H - 44,
+    width: bw + 16,
+    height: 18,
+    color: SURFACE,
+    borderColor: ACCENT,
+    borderWidth: 0.5,
+  });
+  page.drawText(badge, {
+    x: PAGE_W - MARGIN - bw - 8,
+    y: PAGE_H - 40,
+    size: 7,
+    font: bold,
+    color: ACCENT,
+  });
+
+  ctx.y = PAGE_H - HEADER_H - 24;
 }
 
 export async function buildReportPdf(
@@ -503,6 +734,7 @@ export async function buildReportPdf(
   const pdf = await PDFDocument.create();
   const font = await pdf.embedFont(StandardFonts.Helvetica);
   const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
+  const avatar = await embedAvatar(pdf, analysis.meta?.avatarUrl);
 
   const page = pdf.addPage([PAGE_W, PAGE_H]);
   fillPage(page);
@@ -514,9 +746,10 @@ export async function buildReportPdf(
     bold,
     y: PAGE_H - MARGIN,
     contentWidth: PAGE_W - MARGIN * 2,
+    pageIndex: 1,
   };
 
-  drawHeader(ctx, analysis);
+  await drawHeader(ctx, analysis, avatar);
 
   const m = analysis.profile.metrics;
   const engagementRate =
@@ -530,9 +763,9 @@ export async function buildReportPdf(
     { label: "Posts / 30 days", value: String(m.postsLast30Days) },
   ]);
 
-  drawRankMintHero(ctx, analysis);
+  drawScoreHero(ctx, analysis);
 
-  drawSectionTitle(ctx, "Score breakdown");
+  drawSectionTitle(ctx, "Score breakdown", "Four core engines");
   drawBarRows(ctx, [
     { label: "Authenticity", value: analysis.scores.authenticity },
     { label: "Growth potential", value: analysis.scores.growthPotential },
@@ -543,7 +776,11 @@ export async function buildReportPdf(
     },
   ]);
 
-  drawSectionTitle(ctx, "ML feature importance");
+  drawSectionTitle(
+    ctx,
+    "ML feature importance",
+    analysis.modelVersion
+  );
   drawBarRows(
     ctx,
     analysis.featureImportance.map((f) => ({
@@ -552,10 +789,21 @@ export async function buildReportPdf(
     }))
   );
 
+  drawAuthenticityFlags(ctx, analysis);
   drawGrowthForecast(ctx, analysis);
   drawDemographics(ctx, analysis);
   drawBrandMatches(ctx, analysis);
-  drawFooter(ctx, analysis.modelVersion);
+
+  const totalPages = pdf.getPageCount();
+  for (let i = 0; i < totalPages; i++) {
+    const p = pdf.getPage(i);
+    const pageCtx: Ctx = {
+      ...ctx,
+      page: p,
+      pageIndex: i + 1,
+    };
+    drawPageFooter(pageCtx, analysis.modelVersion, totalPages);
+  }
 
   return pdf.save();
 }

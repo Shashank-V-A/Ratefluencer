@@ -37,14 +37,14 @@ export function ApiStatusBanner() {
 
   if (coreReady) {
     return (
-      <div className="flex flex-col gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+      <div className="flex flex-col gap-2 rounded-xl border border-orange-200 bg-orange-50 px-4 py-3 text-sm text-orange-800">
         <div className="flex items-center gap-2">
-          <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
+          <CheckCircle2 className="h-4 w-4 shrink-0 text-orange-600" />
           <span>
             YouTube + X API keys verified. Instagram is optional.
           </span>
         </div>
-        <p className="pl-6 text-xs text-emerald-700/80">
+        <p className="pl-6 text-xs text-orange-700/80">
           X free tier: profile lookup works; tweet history may be limited.
         </p>
       </div>
