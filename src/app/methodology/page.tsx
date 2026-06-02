@@ -243,7 +243,7 @@ export default function MethodologyPage() {
         </p>
         <Link
           href="/analyze"
-          className="btn-primary-glow inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-all hover:brightness-110"
+          className="btn-primary-glow inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground"
         >
           Analyze a creator
           <ArrowRight className="h-4 w-4" />

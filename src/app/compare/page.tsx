@@ -83,7 +83,7 @@ export default function ComparePage() {
                 disabled={loading}
               />
               <Input
-                className="border-primary/15 bg-primary/[0.04]"
+                className="border-border bg-white shadow-sm"
                 placeholder="@handle"
                 value={h}
                 onChange={(e) => setH(e.target.value)}
@@ -180,7 +180,7 @@ export default function ComparePage() {
         <div className="glass-panel mt-10 overflow-hidden rounded-2xl">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-primary/12 bg-primary/[0.04]">
+              <tr className="border-b border-border bg-muted/40">
                 <th className="px-4 py-3 text-left font-medium">Metric</th>
                 <th className="px-4 py-3 text-right font-medium">
                   {left.profile.displayName.split(" ")[0]}
@@ -209,7 +209,7 @@ export default function ComparePage() {
                 return (
                   <tr
                     key={row.label}
-                    className="border-b border-primary/10 last:border-0"
+                    className="border-b border-border last:border-0"
                   >
                     <td className="px-4 py-3 text-muted-foreground">
                       {row.label}

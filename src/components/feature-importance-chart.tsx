@@ -23,21 +23,22 @@ export function FeatureImportanceChart({
             type="category"
             dataKey="feature"
             width={120}
-            tick={{ fill: "oklch(0.62 0.04 145)", fontSize: 11 }}
+            tick={{ fill: "oklch(0.52 0.02 260)", fontSize: 11 }}
             axisLine={false}
             tickLine={false}
           />
           <Tooltip
             contentStyle={{
-              background: "oklch(0.08 0.018 145)",
-              border: "1px solid oklch(0.88 0.24 136 / 25%)",
+              background: "oklch(1 0 0)",
+              border: "1px solid oklch(0.91 0.012 155)",
               borderRadius: 8,
               fontSize: 12,
-              color: "oklch(0.92 0.02 145)",
+              color: "oklch(0.22 0.02 260)",
+              boxShadow: "0 4px 12px oklch(0.2 0.02 260 / 8%)",
             }}
             formatter={(v) => [`${v}%`, "Impact"]}
           />
-          <Bar dataKey="impact" fill="oklch(0.88 0.24 136)" radius={[0, 4, 4, 0]} />
+          <Bar dataKey="impact" fill="oklch(0.52 0.14 162)" radius={[0, 4, 4, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </div>

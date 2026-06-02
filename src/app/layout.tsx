@@ -1,14 +1,8 @@
 import type { Metadata } from "next";
-import { Geist_Mono, Instrument_Serif, Plus_Jakarta_Sans } from "next/font/google";
+import { Geist_Mono, Plus_Jakarta_Sans } from "next/font/google";
 import { SiteHeader } from "@/components/site-header";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import "./globals.css";
-
-const instrument = Instrument_Serif({
-  variable: "--font-instrument",
-  subsets: ["latin"],
-  weight: ["400"],
-});
 
 const jakarta = Plus_Jakarta_Sans({
   variable: "--font-jakarta",
@@ -22,9 +16,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "RankMint — Micro UGC Intelligence",
+  title: "RankMint — Influencer Intelligence",
   description:
-    "Live creator intelligence for micro UGC — real API data from YouTube, X, and Instagram.",
+    "Live creator intelligence — authenticity, growth, brand match, and RankMint score from real API data.",
 };
 
 export default function RootLayout({
@@ -35,10 +29,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${instrument.variable} ${jakarta.variable} ${geistMono.variable} dark h-full antialiased`}
+      className={`${jakarta.variable} ${geistMono.variable} h-full`}
     >
       <body className="flex min-h-full flex-col">
-        <div className="grain" aria-hidden />
         <TooltipProvider>
           <SiteHeader />
           <main className="flex-1">{children}</main>

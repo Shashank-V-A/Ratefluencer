@@ -11,9 +11,9 @@ const flagLabels: Record<keyof AuthenticityFlags, string> = {
 
 function riskBadge(level: "low" | "medium" | "high") {
   const styles = {
-    low: "bg-emerald-500/15 text-emerald-400 border-emerald-500/20",
-    medium: "bg-amber-500/15 text-amber-400 border-amber-500/20",
-    high: "bg-red-500/15 text-red-400 border-red-500/20",
+    low: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    medium: "bg-amber-50 text-amber-800 border-amber-200",
+    high: "bg-red-50 text-red-700 border-red-200",
   };
   return (
     <Badge variant="outline" className={cn("capitalize", styles[level])}>

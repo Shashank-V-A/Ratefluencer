@@ -47,7 +47,7 @@ export function ScoreRing({
           strokeDashoffset={offset}
           strokeLinecap="round"
           className={cn(
-            "transition-all duration-700 drop-shadow-[0_0_16px_oklch(0.88_0.24_136/40%)]",
+            "transition-all duration-700",
             tier
           )}
         />

@@ -37,14 +37,14 @@ export function ApiStatusBanner() {
 
   if (coreReady) {
     return (
-      <div className="flex flex-col gap-2 rounded-lg border border-emerald-500/25 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-400">
+      <div className="flex flex-col gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
         <div className="flex items-center gap-2">
-          <CheckCircle2 className="h-4 w-4 shrink-0" />
+          <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
           <span>
             YouTube + X API keys verified. Instagram is optional.
           </span>
         </div>
-        <p className="text-xs text-emerald-400/80 pl-6">
+        <p className="pl-6 text-xs text-emerald-700/80">
           X free tier: profile lookup works; tweet history may be limited.
         </p>
       </div>
@@ -53,16 +53,18 @@ export function ApiStatusBanner() {
 
   if (xKeyPresent && xVerify && !xVerify.ok && !xVerify.tokenValid) {
     return (
-      <div className="flex flex-col gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-red-300">
+      <div className="flex flex-col gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
         <div className="flex items-start gap-2">
-          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-600" />
           <div>
             <p className="font-medium">X Bearer Token invalid (401)</p>
-            <p className="mt-1 text-xs opacity-90">{xVerify.error}</p>
+            <p className="mt-1 text-xs text-red-700">{xVerify.error}</p>
           </div>
         </div>
         {youtubeOk && (
-          <p className="text-xs pl-6 opacity-80">YouTube is working — use YouTube for now.</p>
+          <p className="pl-6 text-xs text-red-700/80">
+            YouTube is working — use YouTube for now.
+          </p>
         )}
       </div>
     );
@@ -78,15 +80,27 @@ export function ApiStatusBanner() {
   if (missing.length === 0) return null;
 
   return (
-    <div className="flex flex-col gap-2 rounded-lg border border-amber-500/25 bg-amber-500/10 px-4 py-3 text-sm text-amber-200/90">
+    <div className="flex flex-col gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
       <div className="flex items-start gap-2">
-        <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+        <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
         <span>
-          Create <code className="rounded bg-black/20 px-1">.env.local</code>{" "}
-          (run <code className="rounded bg-black/20 px-1">npm run env:setup</code>
+          Create{" "}
+          <code className="rounded bg-white px-1.5 py-0.5 text-xs shadow-sm">
+            .env.local
+          </code>{" "}
+          (run{" "}
+          <code className="rounded bg-white px-1.5 py-0.5 text-xs shadow-sm">
+            npm run env:setup
+          </code>
           ), add <strong>{missing.join(" & ")}</strong> keys, then restart{" "}
-          <code className="rounded bg-black/20 px-1">npm run dev</code>. Not{" "}
-          <code className="rounded bg-black/20 px-1">.env.example</code>.
+          <code className="rounded bg-white px-1.5 py-0.5 text-xs shadow-sm">
+            npm run dev
+          </code>
+          . Not{" "}
+          <code className="rounded bg-white px-1.5 py-0.5 text-xs shadow-sm">
+            .env.example
+          </code>
+          .
         </span>
       </div>
     </div>

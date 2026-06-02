@@ -1,3 +1,6 @@
+"use client";
+
+import { motion } from "framer-motion";
 import {
   Shield,
   TrendingUp,
@@ -15,62 +18,65 @@ const FEATURES: {
   {
     icon: Shield,
     title: "Authenticity",
-    body: "Spot purchased followers, engagement pods, and artificial spikes from real post-level signals.",
-    className: "md:col-span-2 md:row-span-1",
+    body: "Detect fake followers, pods, bots, and engagement spikes from live post data.",
+    className: "md:col-span-2",
   },
   {
     icon: TrendingUp,
     title: "Growth",
-    body: "90-day momentum forecasts from live follower and engagement trajectories.",
+    body: "90-day follower, engagement, and audience expansion forecasts.",
     className: "md:col-span-1",
   },
   {
     icon: Handshake,
     title: "Brand match",
-    body: "Built-in semantic embeddings + optional pgvector RAG over your brand workspace.",
+    body: "Embeddings + RAG over your brand catalog with commerce reranking.",
     className: "md:col-span-1",
   },
   {
     icon: Layers,
-    title: "RankMint™",
-    body: "Trained logistic model on documented synthetic UGC labels — coefficients synced from ml/train_model.py.",
+    title: "RankMint score",
+    body: "ML composite (Ratefluencer Score) trained on campaign outcome features.",
     className: "md:col-span-2",
   },
 ];
 
 export function FeaturesSection() {
   return (
-    <section className="relative px-6 py-24 md:py-32">
+    <section className="relative px-6 py-20 md:py-28">
       <div className="mx-auto max-w-6xl">
         <div className="mx-auto max-w-2xl text-center">
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-primary/80">
-            Scoring stack
-          </p>
-          <h2 className="font-display mt-4 text-3xl font-normal tracking-tight md:text-4xl">
-            Four engines. One score brands can trust.
+          <p className="section-label">Scoring stack</p>
+          <h2 className="font-display mt-3 text-3xl text-foreground md:text-4xl">
+            Everything Track 1 asks for
           </h2>
-          <p className="mt-4 text-muted-foreground">
-            Every number is computed from live API data at the moment you analyze
-            — nothing cached from a demo dataset.
+          <p className="mt-3 text-muted-foreground">
+            Five engines, one report — built for brands picking micro creators
+            with data, not guesswork.
           </p>
         </div>
 
-        <div className="mt-16 grid gap-4 md:grid-cols-3 md:grid-rows-2">
-          {FEATURES.map((item) => (
-            <article
+        <div className="mt-14 grid gap-4 md:grid-cols-3 md:grid-rows-2">
+          {FEATURES.map((item, i) => (
+            <motion.article
               key={item.title}
-              className={`glass-panel group p-7 transition-colors duration-300 hover:border-primary/15 ${item.className}`}
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-40px" }}
+              transition={{ delay: i * 0.06, duration: 0.45 }}
+              whileHover={{ y: -4 }}
+              className={`glass-panel group rounded-2xl p-6 transition-shadow hover:shadow-lg ${item.className}`}
             >
-              <div className="mb-5 inline-flex rounded-xl border border-primary/15 bg-primary/[0.06] p-2.5 text-primary transition-colors group-hover:border-primary/30 group-hover:bg-primary/12 group-hover:shadow-[0_0_20px_-8px_oklch(0.88_0.24_136/40%)]">
-                <item.icon className="h-5 w-5" strokeWidth={1.5} />
+              <div className="mb-4 inline-flex rounded-xl bg-accent p-2.5 text-primary">
+                <item.icon className="h-5 w-5" strokeWidth={1.75} />
               </div>
-              <h3 className="font-display text-xl tracking-tight">
+              <h3 className="font-display text-lg text-foreground">
                 {item.title}
               </h3>
-              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                 {item.body}
               </p>
-            </article>
+            </motion.article>
           ))}
         </div>
       </div>

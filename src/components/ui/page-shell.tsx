@@ -34,11 +34,11 @@ export function PageTitle({
 }) {
   return (
     <header className="mb-10">
-      <h1 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">
+      <h1 className="font-display text-3xl text-foreground md:text-4xl">
         {children}
       </h1>
       {subtitle && (
-        <p className="mt-3 max-w-xl text-base leading-relaxed text-muted-foreground">
+        <p className="mt-3 max-w-2xl text-base leading-relaxed text-muted-foreground">
           {subtitle}
         </p>
       )}

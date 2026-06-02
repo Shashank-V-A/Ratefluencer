@@ -16,21 +16,18 @@ export function SiteHeader() {
   const pathname = usePathname();
 
   return (
-    <header className="sticky top-0 z-50 border-b border-primary/12 bg-background/75 backdrop-blur-2xl backdrop-saturate-150">
-      <div className="mx-auto flex h-[4.25rem] max-w-6xl items-center justify-between gap-6 px-6">
-        <Link href="/" className="group flex items-center gap-3">
-          <span className="relative flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl border border-primary/30 bg-gradient-to-br from-primary/30 to-primary/5 shadow-[0_0_20px_-6px_oklch(0.88_0.24_136/50%)]">
-            <span className="font-display text-lg leading-none text-primary">
-              R
-            </span>
-            <span className="pointer-events-none absolute inset-0 bg-gradient-to-t from-transparent to-primary/10" />
+    <header className="sticky top-0 z-50 border-b border-border/80 bg-white/80 shadow-sm shadow-black/[0.03] backdrop-blur-xl">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-6">
+        <Link href="/" className="flex items-center gap-2.5">
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-sm font-bold text-primary-foreground shadow-sm">
+            R
           </span>
-          <span className="font-display text-[1.35rem] tracking-tight text-foreground">
-            Rank<span className="text-primary">Mint</span>
+          <span className="font-display text-lg tracking-tight text-foreground">
+            RankMint
           </span>
         </Link>
 
-        <nav className="hidden items-center gap-0.5 md:flex">
+        <nav className="hidden items-center gap-1 rounded-full border border-border/80 bg-muted/50 p-1 md:flex">
           {links.map((link) => {
             const active =
               pathname === link.href ||
@@ -40,10 +37,10 @@ export function SiteHeader() {
                 key={link.href}
                 href={link.href}
                 className={cn(
-                  "rounded-lg px-4 py-2 text-sm font-medium transition-colors duration-200",
+                  "rounded-full px-4 py-1.5 text-sm font-medium transition-all duration-200",
                   active
-                    ? "bg-primary/10 text-primary shadow-[inset_0_0_0_1px_oklch(0.88_0.24_136/25%)]"
-                    : "text-muted-foreground hover:bg-primary/[0.06] hover:text-foreground"
+                    ? "bg-white text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
                 )}
               >
                 {link.label}
@@ -54,7 +51,7 @@ export function SiteHeader() {
 
         <Link
           href="/analyze"
-          className="btn-primary-glow rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-all duration-200 hover:brightness-110"
+          className="btn-primary-glow rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground"
         >
           Analyze
         </Link>

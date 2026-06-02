@@ -51,7 +51,7 @@ export function CreatorReportView({
         {meta?.warnings?.map((w) => (
           <p
             key={w}
-            className="mt-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200/90"
+            className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900"
           >
             {w}
           </p>
@@ -210,7 +210,7 @@ export function CreatorReportView({
           </div>
 
           <aside className="lg:sticky lg:top-24 lg:self-start">
-            <div className="rounded-2xl border border-primary/20 bg-card/60 p-8 text-center backdrop-blur-sm">
+            <div className="rounded-2xl border border-border bg-white p-8 text-center shadow-sm">
               <ScoreRing
                 score={scores.rankMint}
                 size={160}

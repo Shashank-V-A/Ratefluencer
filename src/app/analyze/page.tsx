@@ -101,7 +101,7 @@ export default function AnalyzePage() {
           <div className="relative flex-1">
             <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              className="h-10 border-primary/15 bg-primary/[0.04] pl-10 focus-visible:border-primary/35"
+              className="h-10 border-border bg-white pl-10 shadow-sm"
               placeholder={`@${EXAMPLES[platform] ?? "username"}`}
               value={handle}
               onChange={(e) => setHandle(e.target.value)}
@@ -143,8 +143,8 @@ export default function AnalyzePage() {
                   ? "X_API_BEARER_TOKEN"
                   : "Instagram Meta credentials"}
             </strong>{" "}
-            in <code className="rounded bg-black/20 px-1">.env.local</code>, then
-            restart <code className="rounded bg-black/20 px-1">npm run dev</code>.
+            in <code className="rounded bg-muted px-1.5 py-0.5 text-xs">.env.local</code>, then
+            restart <code className="rounded bg-muted px-1.5 py-0.5 text-xs">npm run dev</code>.
           </p>
         )}
 
@@ -157,7 +157,7 @@ export default function AnalyzePage() {
         {result?.meta?.warnings?.map((w) => (
           <p
             key={w}
-            className="rounded-xl border border-amber-500/20 bg-amber-500/8 px-4 py-3 text-sm text-amber-100/90"
+            className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900"
           >
             {w}
           </p>
@@ -187,7 +187,7 @@ export default function AnalyzePage() {
                 </Link>
               </div>
             </div>
-            <div className="mt-8 border-t border-primary/12 pt-8">
+            <div className="mt-8 border-t border-border pt-8">
               <ScoreBreakdownPanel scores={result.scores} />
             </div>
           </GlassPanel>

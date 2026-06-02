@@ -1,64 +1,68 @@
-/** Abstract UI preview — illustrative layout only, not live creator data */
+"use client";
+
+import { motion } from "framer-motion";
+
+const EASE = [0.22, 1, 0.36, 1] as const;
 
 const METRICS = [
-  { label: "Authenticity", value: 91, width: "91%" },
-  { label: "Growth", value: 84, width: "84%" },
-  { label: "Brand match", value: 88, width: "88%" },
+  { label: "Authenticity", value: 91 },
+  { label: "Growth", value: 84 },
+  { label: "Brand match", value: 88 },
 ];
 
 export function HeroPreview() {
   return (
-    <div className="glass-panel radium-border relative w-full overflow-hidden p-6 md:p-8">
-      <div
-        className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-primary/20 blur-3xl"
-        aria-hidden
-      />
-      <div className="relative flex items-start justify-between gap-4">
+    <div className="glass-panel motion-safe-float relative overflow-hidden rounded-3xl p-6 md:p-8">
+      <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary/20 via-primary to-primary/20" />
+
+      <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-primary/80">
-            Intelligence preview
-          </p>
-          <p className="mt-2 font-display text-2xl tracking-tight text-foreground">
-            RankMint™
-          </p>
+          <p className="section-label">Sample report</p>
+          <p className="font-display mt-2 text-2xl text-foreground">RankMint</p>
           <p className="mt-1 text-xs text-muted-foreground">
-            Live API · scored at analysis time
+            Scored from live API metrics
           </p>
         </div>
-        <div className="flex h-16 w-16 shrink-0 flex-col items-center justify-center rounded-2xl border border-primary/35 bg-primary/10 shadow-[0_0_24px_-6px_oklch(0.88_0.24_136/45%)]">
-          <span className="font-display text-2xl font-normal tabular-nums text-primary">
-            87
-          </span>
-          <span className="text-[9px] uppercase tracking-widest text-muted-foreground">
+        <div className="flex h-16 w-16 flex-col items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-md">
+          <span className="font-display text-2xl tabular-nums">87</span>
+          <span className="text-[9px] font-medium uppercase tracking-wider opacity-90">
             Score
           </span>
         </div>
       </div>
 
-      <div className="relative mt-8 space-y-4">
-        {METRICS.map((m) => (
+      <div className="mt-8 space-y-4">
+        {METRICS.map((m, i) => (
           <div key={m.label}>
             <div className="mb-1.5 flex justify-between text-xs">
-              <span className="text-muted-foreground">{m.label}</span>
-              <span className="tabular-nums text-foreground">{m.value}</span>
+              <span className="font-medium text-muted-foreground">{m.label}</span>
+              <span className="tabular-nums font-semibold text-foreground">
+                {m.value}
+              </span>
             </div>
-            <div className="h-1.5 overflow-hidden rounded-full bg-primary/10">
-              <div
-                className="h-full rounded-full bg-primary shadow-[0_0_12px_oklch(0.88_0.24_136/50%)]"
-                style={{ width: m.width }}
+            <div className="h-2 overflow-hidden rounded-full bg-muted">
+              <motion.div
+                className="h-full rounded-full bg-gradient-to-r from-primary to-emerald-400"
+                initial={{ width: 0 }}
+                animate={{ width: `${m.value}%` }}
+                transition={{
+                  delay: 0.4 + i * 0.12,
+                  duration: 0.8,
+                  ease: EASE,
+                }}
               />
             </div>
           </div>
         ))}
       </div>
 
-      <div className="relative mt-8 grid grid-cols-3 gap-2 border-t border-primary/15 pt-6">
+      <div className="mt-8 grid grid-cols-3 gap-2 border-t border-border pt-6">
         {["YouTube", "X", "Instagram"].map((p) => (
           <div
             key={p}
-            className="rounded-lg border border-primary/12 bg-primary/[0.04] px-2 py-2 text-center"
+            className="rounded-xl border border-border bg-muted/40 px-2 py-2 text-center text-[10px] font-medium text-muted-foreground"
           >
-            <p className="text-[10px] text-muted-foreground">{p}</p>
+            {p}
           </div>
         ))}
       </div>

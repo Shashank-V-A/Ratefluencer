@@ -113,7 +113,7 @@ export function DemographicsPanel({
             ].map((g) => (
               <div
                 key={g.label}
-                className="rounded-lg border border-primary/12 bg-primary/[0.04] px-4 py-3"
+                className="rounded-lg border border-border bg-white px-4 py-3 shadow-sm"
               >
                 <p className="text-xs text-muted-foreground">{g.label}</p>
                 <p className="font-display mt-1 text-xl tabular-nums">{g.value}%</p>

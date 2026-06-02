@@ -42,8 +42,8 @@ export default function SavedPage() {
       </PageTitle>
 
       {needsSupabase && (
-        <p className="mb-6 rounded-xl border border-amber-500/20 bg-amber-500/8 px-4 py-3 text-sm text-amber-100/90">
-          Configure Supabase in <code className="rounded bg-black/20 px-1">.env.local</code> to
+        <p className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          Configure Supabase in <code className="rounded bg-white px-1.5 py-0.5 text-xs shadow-sm">.env.local</code> to
           persist saved reports.
         </p>
       )}
