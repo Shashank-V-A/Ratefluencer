@@ -4,17 +4,19 @@ export function PageShell({
   children,
   className,
   narrow,
+  wide,
 }: {
   children: React.ReactNode;
   className?: string;
   narrow?: boolean;
+  wide?: boolean;
 }) {
   return (
     <div className={cn("px-6 py-14 md:py-20", className)}>
       <div
         className={cn(
           "mx-auto",
-          narrow ? "max-w-2xl" : "max-w-4xl"
+          narrow ? "max-w-2xl" : wide ? "max-w-6xl" : "max-w-4xl"
         )}
       >
         {children}

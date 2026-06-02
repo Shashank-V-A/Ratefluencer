@@ -13,6 +13,7 @@ All creator profiles come from **live platform APIs** — no demo dataset.
 - **Saved shortlist** — `/saved` (optional Supabase)
 - **Export** — PDF + share link on reports
 - **Methodology** — `/methodology` — live vs modeled transparency
+- **Audience demographics** — inferred age, country, gender from public signals (Insights OAuth overrides when available)
 
 ## Environment
 

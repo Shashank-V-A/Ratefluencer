@@ -55,7 +55,7 @@ export default function BrandsPage() {
 
   return (
     <PageShell>
-      <PageTitle subtitle="Your brand catalog powers embedding + RAG retrieval during analysis. Defaults are seeded on first visit.">
+      <PageTitle subtitle="Add real brand briefs for embedding + RAG retrieval during analysis. Legacy demo catalog entries are removed automatically.">
         Brand workspace
       </PageTitle>
 

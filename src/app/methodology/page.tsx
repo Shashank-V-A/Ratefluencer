@@ -1,84 +1,253 @@
 import Link from "next/link";
-import { GlassPanel, PageShell, PageTitle } from "@/components/ui/page-shell";
+import {
+  ArrowRight,
+  BarChart3,
+  Handshake,
+  Radio,
+  Shield,
+  Sparkles,
+  TrendingUp,
+  Users,
+  type LucideIcon,
+} from "lucide-react";
+import { PageShell, PageTitle } from "@/components/ui/page-shell";
 
 export const metadata = {
   title: "How RankMint scores creators — Methodology",
 };
 
+const LIVE_ITEMS = [
+  "Profile, bio, followers, following",
+  "Likes, comments, shares, saves, views",
+  "Posting frequency (last 30 / 90 days)",
+  "YouTube · X · Instagram APIs",
+];
+
+type ScoreCard = {
+  icon: LucideIcon;
+  title: string;
+  range: string;
+  source: string;
+  lines: string[];
+  subtitle?: string;
+  highlight?: boolean;
+};
+
+const SCORES: ScoreCard[] = [
+  {
+    icon: Shield,
+    title: "Authenticity",
+    range: "0-100",
+    source: "Heuristic",
+    lines: [
+      "Purchased followers",
+      "Engagement pods",
+      "Bot activity",
+      "Artificial spikes",
+    ],
+  },
+  {
+    icon: TrendingUp,
+    title: "Growth potential",
+    range: "0-100",
+    source: "Modeled",
+    lines: [
+      "90-day follower growth",
+      "Engagement growth",
+      "Audience expansion",
+    ],
+  },
+  {
+    icon: Handshake,
+    title: "Brand match",
+    range: "0-100",
+    source: "Embeddings + RAG",
+    lines: [
+      "Creator to brand similarity",
+      "pgvector retrieval",
+      "Commerce signal rerank",
+    ],
+  },
+  {
+    icon: BarChart3,
+    title: "Campaign success",
+    range: "0-100%",
+    source: "ML",
+    lines: [
+      "Logistic regression",
+      "Engagement and consistency features",
+      "Trained on campaign labels",
+    ],
+  },
+  {
+    icon: Sparkles,
+    title: "RankMint",
+    subtitle: "Ratefluencer Score",
+    range: "0-100",
+    source: "ML composite",
+    lines: [
+      "Ranks creators by business impact",
+      "Not follower count alone",
+      "Tier calibration for mega creators",
+    ],
+    highlight: true,
+  },
+];
+
+function SourceBadge({ label }: { label: string }) {
+  return (
+    <span className="rounded-full border border-primary/25 bg-primary/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-primary">
+      {label}
+    </span>
+  );
+}
+
 export default function MethodologyPage() {
   return (
-    <PageShell>
-      <PageTitle subtitle="What is live from APIs vs modeled — no marketing fluff.">
+    <PageShell wide className="pb-20">
+      <PageTitle subtitle="Live platform data + ML scores. Every number on a report maps to one of the sections below.">
         Scoring methodology
       </PageTitle>
 
-      <div className="space-y-6">
-        <GlassPanel>
-          <h2 className="font-display text-xl">Live data</h2>
-          <ul className="mt-4 list-disc space-y-2 pl-5 text-sm text-muted-foreground">
-            <li>Profile, bio, follower counts, and recent posts from YouTube Data API, X API v2, or Instagram Graph API.</li>
-            <li>Engagement metrics aggregated from returned posts at analysis time.</li>
-            <li>Results cached by platform + handle (default 6h) in Supabase when configured.</li>
+      <div className="mb-10 grid gap-4 md:grid-cols-2">
+        <div className="glass-panel rounded-2xl p-6">
+          <div className="flex items-center gap-2 text-primary">
+            <Radio className="h-4 w-4" strokeWidth={2} />
+            <span className="text-xs font-semibold uppercase tracking-widest">
+              Live from APIs
+            </span>
+          </div>
+          <ul className="mt-4 space-y-2">
+            {LIVE_ITEMS.map((item) => (
+              <li
+                key={item}
+                className="flex items-start gap-2 text-sm text-muted-foreground"
+              >
+                <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-primary" />
+                {item}
+              </li>
+            ))}
           </ul>
-        </GlassPanel>
+        </div>
 
-        <GlassPanel>
-          <h2 className="font-display text-xl">RankMint™ score</h2>
-          <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
-            Logistic regression trained on documented campaign archetypes in{" "}
-            <code className="rounded bg-primary/10 px-1 text-primary/90">ml/campaign_labels.csv</code>{" "}
-            (creator tier, spend, CTR, sales). Replace or extend that file with
-            your real campaign outcomes and run{" "}
-            <code className="rounded bg-primary/10 px-1 text-primary/90">npm run ml:train</code> then{" "}
-            <code className="rounded bg-primary/10 px-1 text-primary/90">npm run ml:sync</code>.
-            Reports show the model version (e.g.{" "}
-            <code className="rounded bg-primary/10 px-1 text-primary/90">rm-trained-v1.1-campaign-labels</code>
-            ).
-          </p>
-          <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
-            <strong>Scale calibration:</strong> micro, mid, and mega creators use
-            separate caps and adjustments so a 20M-subscriber channel is not scored
-            like a dorm-room UGC account. Uncalibrated model output may appear in
-            scoring notes when tier calibration applies.
-          </p>
-        </GlassPanel>
+        <div className="glass-panel rounded-2xl p-6">
+          <div className="flex items-center gap-2 text-primary">
+            <Sparkles className="h-4 w-4" strokeWidth={2} />
+            <span className="text-xs font-semibold uppercase tracking-widest">
+              Modeled and inferred
+            </span>
+          </div>
+          <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
+            <li className="flex items-start gap-2">
+              <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-primary" />
+              RankMint, growth, campaign success - trained ML
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-primary" />
+              Brand match - embeddings + optional OpenAI upgrade
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-primary" />
+              Demographics - inferred from location and content niche
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-primary" />
+              Authenticity - heuristics, not a fraud-vendor API
+            </li>
+          </ul>
+        </div>
+      </div>
 
-        <GlassPanel>
-          <h2 className="font-display text-xl">Brand match (embeddings + RAG)</h2>
-          <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
-            By default, RankMint embeds creator bios and brand briefs with{" "}
-            <strong>built-in semantic embeddings</strong> — no OpenAI or other
-            third-party AI key required. If you set{" "}
-            <code className="rounded bg-primary/10 px-1 text-primary/90">OPENAI_API_KEY</code>,
-            cloud embeddings are used instead (optional upgrade). With Supabase
-            configured, top brands are retrieved via pgvector cosine similarity,
-            then reranked with commerce signals (save rate, share rate, content
-            fit). Manage brands in{" "}
-            <Link href="/brands" className="text-primary hover:underline">
-              Brand workspace
-            </Link>
-            .
-          </p>
-        </GlassPanel>
+      <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-primary/80">
+        Five scoring engines
+      </p>
 
-        <GlassPanel>
-          <h2 className="font-display text-xl">Authenticity</h2>
-          <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
-            Heuristic risk flags from public metrics (engagement variance, comment
-            patterns, follower/following ratio). Not a third-party fraud API — treat
-            as signals, not ground truth. At very large follower counts, “purchased
-            followers” style signals are dampened because mega accounts often show
-            atypical but legitimate public metrics.
-          </p>
-        </GlassPanel>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {SCORES.map((score) => {
+          const Icon = score.icon;
+          return (
+            <div
+              key={score.title}
+              className={
+                score.highlight
+                  ? "glass-panel rounded-2xl border-primary/30 p-5 ring-1 ring-primary/20"
+                  : "glass-panel rounded-2xl p-5"
+              }
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-primary">
+                    <Icon className="h-4 w-4" strokeWidth={1.75} />
+                  </span>
+                  <div>
+                    <h2 className="font-display text-lg leading-tight">
+                      {score.title}
+                    </h2>
+                    {score.subtitle && (
+                      <p className="text-[11px] text-muted-foreground">
+                        {score.subtitle}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <span className="font-display text-sm tabular-nums text-primary">
+                  {score.range}
+                </span>
+              </div>
+              <div className="mt-3">
+                <SourceBadge label={score.source} />
+              </div>
+              <ul className="mt-4 space-y-1.5">
+                {score.lines.map((line) => (
+                  <li key={line} className="text-sm text-muted-foreground">
+                    {line}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          );
+        })}
 
-        <GlassPanel>
-          <h2 className="font-display text-xl">Audience demographics</h2>
-          <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
-            Hidden unless supplied by a platform API with OAuth (Instagram Insights,
-            YouTube Analytics). We do not fabricate age/country charts.
+        <div className="glass-panel rounded-2xl p-5 sm:col-span-2 lg:col-span-2">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="flex items-center gap-2.5">
+              <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-primary">
+                <Users className="h-4 w-4" strokeWidth={1.75} />
+              </span>
+              <div>
+                <h2 className="font-display text-lg">Audience demographics</h2>
+                <p className="text-sm text-muted-foreground">
+                  Age, country, gender on every report
+                </p>
+              </div>
+            </div>
+            <SourceBadge label="Inferred" />
+          </div>
+          <p className="mt-4 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+            Built from creator location, content niche, and platform benchmarks.
+            Platform Insights OAuth overrides when connected.
           </p>
-        </GlassPanel>
+        </div>
+      </div>
+
+      <div className="glass-panel mt-10 flex flex-col items-start justify-between gap-4 rounded-2xl p-6 sm:flex-row sm:items-center">
+        <p className="text-sm text-muted-foreground">
+          Add brands in{" "}
+          <Link href="/brands" className="text-primary hover:underline">
+            Brand workspace
+          </Link>{" "}
+          · Retrain model with{" "}
+          <code className="rounded bg-primary/10 px-1.5 py-0.5 text-xs text-primary/90">
+            npm run ml:train
+          </code>
+        </p>
+        <Link
+          href="/analyze"
+          className="btn-primary-glow inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-all hover:brightness-110"
+        >
+          Analyze a creator
+          <ArrowRight className="h-4 w-4" />
+        </Link>
       </div>
     </PageShell>
   );

@@ -437,6 +437,66 @@ function drawFooter(ctx: Ctx, modelVersion: string) {
   });
 }
 
+function drawDemographics(ctx: Ctx, analysis: AnalysisResult) {
+  const d = analysis.profile.demographics;
+  if (d.source === "unavailable") return;
+
+  drawSectionTitle(
+    ctx,
+    d.source === "api"
+      ? "Audience demographics (platform API)"
+      : "Audience demographics (inferred)"
+  );
+
+  const ageItems =
+    d.ageGroups?.slice(0, 4).map((g) => ({
+      label: g.range,
+      value: g.percent,
+    })) ?? [];
+
+  if (ageItems.length) {
+    ensureSpace(ctx, 20);
+    ctx.page.drawText("Age distribution", {
+      x: MARGIN,
+      y: ctx.y,
+      size: 9,
+      font: ctx.bold,
+      color: MUTED,
+    });
+    ctx.y -= 14;
+    drawBarRows(ctx, ageItems);
+  }
+
+  const countryItems =
+    d.topCountries?.slice(0, 4).map((c) => ({
+      label: c.country.slice(0, 20),
+      value: c.percent,
+    })) ?? [];
+
+  if (countryItems.length) {
+    ensureSpace(ctx, 20);
+    ctx.page.drawText("Top countries", {
+      x: MARGIN,
+      y: ctx.y,
+      size: 9,
+      font: ctx.bold,
+      color: MUTED,
+    });
+    ctx.y -= 14;
+    drawBarRows(ctx, countryItems);
+  }
+
+  if (d.genderSplit) {
+    ensureSpace(ctx, 36);
+    const g = d.genderSplit;
+    ctx.page.drawText(
+      `Gender (est.): Female ${g.female}% · Male ${g.male}% · Other ${g.other}%`,
+      { x: MARGIN, y: ctx.y - 10, size: 8, font: ctx.font, color: TEXT }
+    );
+    ctx.y -= 24;
+  }
+}
+
 export async function buildReportPdf(
   analysis: AnalysisResult
 ): Promise<Uint8Array> {
@@ -493,6 +553,7 @@ export async function buildReportPdf(
   );
 
   drawGrowthForecast(ctx, analysis);
+  drawDemographics(ctx, analysis);
   drawBrandMatches(ctx, analysis);
   drawFooter(ctx, analysis.modelVersion);
 

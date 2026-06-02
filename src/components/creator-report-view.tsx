@@ -1,5 +1,6 @@
 import { ReportActions } from "@/components/report-actions";
 import Link from "next/link";
+import { DemographicsPanel } from "@/components/demographics-panel";
 import { AuthenticityPanel } from "@/components/authenticity-panel";
 import { BrandMatchList } from "@/components/brand-match-list";
 import { FeatureImportanceChart } from "@/components/feature-importance-chart";
@@ -20,14 +21,8 @@ export function CreatorReportView({
   backHref?: string;
   backLabel?: string;
 }) {
-  const {
-    profile,
-    scores,
-    growthForecast,
-    featureImportance,
-    modelVersion,
-    meta,
-  } = analysis;
+  const { profile, scores, growthForecast, featureImportance, modelVersion, meta } =
+    analysis;
   const m = profile.metrics;
   const engagementRate =
     ((m.likes + m.comments + m.shares + m.saves) / Math.max(m.followers, 1)) *
@@ -181,6 +176,10 @@ export function CreatorReportView({
                   </dd>
                 </div>
               </dl>
+            </div>
+
+            <div className="mt-6">
+              <DemographicsPanel demographics={profile.demographics} />
             </div>
 
             <div className="mt-6 rounded-2xl border border-border/80 bg-card/40 p-6">

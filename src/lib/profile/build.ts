@@ -1,6 +1,7 @@
 import type { FetchedCreatorRaw } from "@/lib/platforms/types";
+import { inferAudienceDemographics } from "@/lib/demographics/infer";
 import { finiteOr } from "@/lib/ml/safe-number";
-import { inferSignals, unavailableDemographics } from "@/lib/signals/infer";
+import { inferSignals } from "@/lib/signals/infer";
 import type { InfluencerProfile } from "@/lib/types";
 
 function num(value: number | undefined | null): number {
@@ -96,7 +97,7 @@ export function buildProfileFromFetched(
   const demographics =
     apiDemographics?.source === "api"
       ? apiDemographics
-      : { ...unavailableDemographics(), purchaseIntent };
+      : inferAudienceDemographics(raw, purchaseIntent);
 
   const id = `${raw.platform}-${raw.handle}`
     .toLowerCase()

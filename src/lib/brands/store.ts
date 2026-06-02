@@ -1,5 +1,5 @@
 import type { BrandProfile } from "@/lib/types";
-import { brandDefs } from "@/lib/data/brand-seeds";
+import { brandDefs, legacyDemoBrandNames } from "@/lib/data/brand-seeds";
 import {
   brandEmbedText,
   embedText,
@@ -12,6 +12,19 @@ export type BrandRecord = BrandProfile & {
   sessionId?: string;
   embeddingProvider?: EmbeddingProvider;
 };
+
+async function purgeLegacyDemoBrands(sessionId: string): Promise<void> {
+  const supabase = getSupabaseAdmin();
+  if (!supabase) return;
+
+  for (const name of legacyDemoBrandNames) {
+    await supabase
+      .from("brands")
+      .delete()
+      .eq("session_id", sessionId)
+      .eq("name", name);
+  }
+}
 
 export async function seedDefaultBrandsForSession(
   sessionId: string
@@ -44,6 +57,7 @@ export async function seedDefaultBrandsForSession(
 export async function listBrands(sessionId: string): Promise<BrandRecord[]> {
   const supabase = getSupabaseAdmin();
   if (supabase) {
+    await purgeLegacyDemoBrands(sessionId);
     await seedDefaultBrandsForSession(sessionId);
     const { data, error } = await supabase
       .from("brands")

@@ -165,6 +165,7 @@ export async function fetchYouTubeCreator(
     meta: {
       totalChannelViews: parseInt(stats?.viewCount ?? "0", 10),
       avgDurationSec,
+      channelCountry: snippet?.country ?? "",
     },
   };
 }
